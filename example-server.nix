@@ -1,6 +1,6 @@
 { instance }:
 
-{ config, ... }:
+{ config, lib, ... }:
 
 {
   microvm = {
@@ -12,7 +12,7 @@
       mountPoint = "/nix/.ro-store";
     } ];
     volumes = [ {
-      image = "nix-store-overlay.img";
+      image = "nix-store-overlay${toString instance}.img";
       mountPoint = config.microvm.writableStoreOverlay;
       size = 20 * 1024;
     } ];
@@ -32,8 +32,26 @@
   # TODO:
   networking.firewall.enable = false;
 
+  networking.useDHCP = false;
+  networking.useNetworkd = true;
+  systemd.network.networks = {
+    "00-eth" = {
+      matchConfig.MACAddress = (builtins.head config.microvm.interfaces).mac;
+      networkConfig = {
+        DHCP = "ipv4";
+        IPv6AcceptRA = true;
+      };
+      addresses = [ {
+        addressConfig.Address = "fec0::${toString instance}/64";
+      } ];
+    };
+  };
+  networking.extraHosts = lib.concatMapStrings (instance: ''
+    fec0::${toString instance} example${toString instance}
+  '') [ 1 2 3 ];
+
   skyflake.nomad = {
-    servers = [ "example1" ];
+    servers = [ "example1" "example2" "example3" ];
   };
 
   skyflake.users = {

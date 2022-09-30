@@ -38,15 +38,21 @@
 
         in {
           example1 = makeExampleSystem 1;
+          example2 = makeExampleSystem 2;
+          example3 = makeExampleSystem 3;
         };
 
-      apps.${system} = rec {
-        default = example1;
-        example1 = {
-          type = "app";
-          program = "${self.nixosConfigurations.example1.config.microvm.declaredRunner}/bin/microvm-run";
+      apps.${system} =
+        let
+          makeExample = instance: {
+            type = "app";
+            program = "${self.nixosConfigurations."example${toString instance}".config.microvm.declaredRunner}/bin/microvm-run";
+          };
+        in {
+          default = makeExample 1;
+          example1 = makeExample 1;
+          example2 = makeExample 2;
+          example3 = makeExample 3;
         };
-      };
-      
     };
 }
