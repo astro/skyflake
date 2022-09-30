@@ -40,6 +40,9 @@ let
             microvm.kernelParams = pkgs.lib.mkBefore [ "regInfo=${bootDisk.regInfo}" ];
             # Override other microvm.nix defaults
             microvm.hypervisor = "cloud-hypervisor";
+            # TODO: make configurable
+            microvm.vcpu = 1;
+            microvm.mem = 256;
             microvm.shares = [ {
               proto = "virtiofs";
               tag = "ro-store";
