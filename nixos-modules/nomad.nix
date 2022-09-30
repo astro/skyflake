@@ -37,7 +37,9 @@ in
       server = {
         enabled = cfg.server.enable;
         bootstrap_expect = (builtins.length cfg.servers + 2) / 2;
-        server_join.retry_join = cfg.servers;
+        server_join.retry_join = map (server:
+          config.skyflake.nodes.${server}.address
+        ) cfg.servers;
       };
       client = {
         enabled = true;

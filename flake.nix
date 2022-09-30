@@ -15,6 +15,7 @@
         default = {
           imports = [
             ./nixos-modules/defaults.nix
+            ./nixos-modules/nodes.nix
             ./nixos-modules/nomad.nix
             ./nixos-modules/users.nix
             (import ./nixos-modules/ssh-deploy.nix {

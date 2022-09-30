@@ -46,19 +46,25 @@
       } ];
     };
   };
-  networking.extraHosts = lib.concatMapStrings (instance: ''
-    fec0::${toString instance} example${toString instance}
-  '') [ 1 2 3 ];
 
-  skyflake.nomad = {
-    servers = [ "example1" "example2" "example3" ];
-  };
+  skyflake = {
+    nodes = builtins.listToAttrs (
+      map (instance: {
+        name = "example${toString instance}";
+        value.address = "fec0::${toString instance}";
+      }) [ 1 2 3 ]
+    );
 
-  skyflake.users = {
-    test = {
-      sshKeys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGJJTSJdpDh82486uPiMhhyhnci4tScp5uUe7156MBC8 astro"
-      ];
+    nomad = {
+      servers = [ "example1" "example2" "example3" ];
+    };
+
+    users = {
+      test = {
+        sshKeys = [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGJJTSJdpDh82486uPiMhhyhnci4tScp5uUe7156MBC8 astro"
+        ];
+      };
     };
   };
 }
