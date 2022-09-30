@@ -42,6 +42,9 @@ let
       exit 1
     fi
 
+    # the branch doesn't exist yet but is required by a git+file:///
+    # flakeref. instead, we're archiving into a blank directory and add that
+    # to the /nix/store so it can be used as a flakeref.
     FLAKETMP=\$(mktemp --tmpdir -d deploy-flake-\$NAME-XXXX)
     git archive \$REV | tar xp -C "\$FLAKETMP"
     FLAKE=\$(nix store add-path "\$FLAKETMP" -n "$REPO")
