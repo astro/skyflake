@@ -33,8 +33,6 @@ in
     settings = rec {
       inherit (cfg) datacenter;
       plugin.raw_exec.config.enabled = true;
-      # no /dev/kvm otherwise. TODO: retry with nomad>1.3.5
-      # plugin.raw_exec.config.no_cgroups = true;
 
       server = {
         enabled = true;
@@ -46,8 +44,5 @@ in
         inherit (server) server_join;
       };
     };
-  };
-  config.systemd.services.nomad = {
-    serviceConfig.Delegate = true;
   };
 }
