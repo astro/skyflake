@@ -35,7 +35,7 @@ in
       plugin.raw_exec.config.enabled = true;
 
       server = {
-        enabled = true;
+        enabled = cfg.server.enable;
         bootstrap_expect = (builtins.length cfg.servers + 2) / 2;
         server_join.retry_join = cfg.servers;
       };
