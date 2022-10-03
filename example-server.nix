@@ -70,6 +70,8 @@
       }) [ 1 2 3 ]
     );
 
+    storage.glusterfs.ipv6Default = true;
+
     nomad = {
       servers = [ "example1" "example2" "example3" ];
     };
