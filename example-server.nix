@@ -12,11 +12,11 @@
       mountPoint = "/nix/.ro-store";
     } ];
     volumes = [ {
-      image = "nix-store-overlay${toString instance}.img";
-      mountPoint = config.microvm.writableStoreOverlay;
+      image = "example1${toString instance}.img";
+      mountPoint = "/persist";
       size = 20 * 1024;
     } ];
-    writableStoreOverlay = "/nix/.rw-store";
+    writableStoreOverlay = "/persist/rw-store";
 
     interfaces = [ {
       id = "eth0";
@@ -25,6 +25,21 @@
       bridge = "virbr0";
     } ];
   };
+
+  fileSystems =
+    let
+      persist = subdir: {
+        device = "/persist/${subdir}";
+        fsType = "none";
+        options = [ "bind" ];
+        depends = [ "/persist" ];
+      };
+    in {
+      "/persist".neededForBoot = lib.mkForce true;
+      "/etc" = persist "etc";
+      "/var" = persist "var";
+      "/home" = persist "home";
+    };
 
   networking.hostName = "example${toString instance}";
   users.users.root.password = "";
