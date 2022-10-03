@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.skyflake.nomad;
+
 in
 {
   options.skyflake.nomad = with lib; {
@@ -21,6 +22,7 @@ in
 
     servers = mkOption {
       type = with types; listOf str;
+      default = builtins.attrNames config.skyflake.nodes;
     };
   };
   
@@ -37,9 +39,7 @@ in
       server = {
         enabled = cfg.server.enable;
         bootstrap_expect = (builtins.length cfg.servers + 2) / 2;
-        server_join.retry_join = map (server:
-          config.skyflake.nodes.${server}.address
-        ) cfg.servers;
+        server_join.retry_join = cfg.servers;
       };
       client = {
         enabled = true;
