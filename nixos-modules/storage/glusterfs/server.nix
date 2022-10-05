@@ -26,11 +26,12 @@ in
     services.glusterfs = {
       enable = true;
       useRpcbind = false;
+      extraFlags = [ "--logger=syslog" ];
     };
 
     systemd.services.glusterfs-init = {
       requires = [ "glusterd.service" ];
-      after = [ "glusterd.service" ];
+      after = [ "glusterd.service" "network-online.target" ];
       wantedBy = map ({ mountPoint, ... }:
         mountPointToSystemdUnit mountPoint
       ) localFileSystems;

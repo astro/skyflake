@@ -25,26 +25,34 @@ in
       default = builtins.attrNames config.skyflake.nodes;
     };
   };
+
+  config = {
   
-  config.services.nomad = {
-    enable = true;
-    package = pkgs.nomad_1_3;
-    dropPrivileges = false;
-    enableDocker = false;
+    services.nomad = {
+      enable = true;
+      package = pkgs.nomad_1_3;
+      dropPrivileges = false;
+      enableDocker = false;
 
-    settings = rec {
-      inherit (cfg) datacenter;
-      plugin.raw_exec.config.enabled = true;
+      settings = rec {
+        inherit (cfg) datacenter;
+        plugin.raw_exec.config.enabled = true;
 
-      server = {
-        enabled = cfg.server.enable;
-        bootstrap_expect = (builtins.length cfg.servers + 2) / 2;
-        server_join.retry_join = cfg.servers;
-      };
-      client = {
-        enabled = true;
-        inherit (server) server_join;
+        server = {
+          enabled = cfg.server.enable;
+          bootstrap_expect = (builtins.length cfg.servers + 2) / 2;
+          server_join.retry_join = cfg.servers;
+        };
+        client = {
+          enabled = true;
+          inherit (server) server_join;
+        };
       };
     };
+
+    environment.systemPackages = with pkgs; [
+      # alternatives to the nomad web ui
+      wander damon
+    ];
   };
 }

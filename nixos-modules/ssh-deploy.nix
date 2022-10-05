@@ -51,7 +51,11 @@ let
     rm -r "\$FLAKETMP"
 
     echo "Skyflake condenses $REPO#\$NAME"
-    cd ${../vm}
+    cd ${substituteAllFiles {
+      src = ../vm;
+      files = [ "." ];
+      inherit (config.skyflake.deploy) sharedStorePath;
+    }}
     nix build -f build-vm.nix \
       -o "$SYSTEMS/\$NAME" \
       --arg nixpkgsRef "\"${nixpkgs}\"" \
@@ -69,8 +73,16 @@ let
       GIT_DIR=. git-receive-pack .
 
       cd $SYSTEMS
+      if [ -z "$(ls -1A)" ]; then
+        echo "No systems were built."
+        exit 0
+      fi
+      echo "Skyflake is raining systems..." >&2
+      ls -la >&2
+      sudo nix copy --to ${cfg.sharedStorePath} --no-check-sigs $(for f in * ; do readlink $f; done)
+
       echo "Skyflake is launching machines:" >&2
-      for SYSTEM in $(ls -1) ; do
+      for SYSTEM in * ; do
         echo $SYSTEM >&2
         nomad run -detach "$SYSTEM" >/dev/null
       done
@@ -103,6 +115,15 @@ in {
         List of datacenters to deploy to.
       '';
     };
+
+    sharedStorePath = mkOption {
+      type = types.str;
+      default = "${(builtins.head config.skyflake.storage.glusterfs.fileSystems).mountPoint}/store";
+      description = ''
+        Directory which is mounted on all nodes that will be used to
+        share the /nix/store with MicroVMs.
+      '';
+    };
   };
 
   config = {
@@ -113,5 +134,22 @@ in {
         "${lib.concatStringsSep "," sshKeyOpts} ${sshKey}"
       ) userConfig.sshKeys;
     }) config.skyflake.users;
+
+    security.sudo = {
+      enable = true;
+      extraRules = [ {
+        groups = [ "users" ];
+        commands = [ {
+          command = ''${pkgs.nix}/bin/nix copy --to ${cfg.sharedStorePath} *'';
+          options = [ "NOPASSWD" ];
+        } ];
+      } {
+        users = [ "microvm" ];
+        commands = [ {
+          command = ''${pkgs.nix}/bin/nix copy *'';
+          options = [ "NOPASSWD" ];
+        } ];
+      } ];
+    };
   };
 }

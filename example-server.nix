@@ -4,6 +4,7 @@
 
 {
   microvm = {
+    vcpu = 2;
     mem = 2048;
 
     shares = [ {
