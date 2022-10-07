@@ -54,7 +54,7 @@ let
     cd ${substituteAllFiles {
       src = ../vm;
       files = [ "." ];
-      inherit (config.skyflake.deploy) sharedStorePath;
+      inherit (config.skyflake.deploy) sharedStorePath customizationModule;
     }}
     nix build -f build-vm.nix \
       -o "$SYSTEMS/\$NAME" \
@@ -122,6 +122,15 @@ in {
       description = ''
         Directory which is mounted on all nodes that will be used to
         share the /nix/store with MicroVMs.
+      '';
+    };
+
+    customizationModule = mkOption {
+      type = types.path;
+      default = ../default-customization.nix;
+      description = ''
+        NixOS module to add when extending a guest NixOS configuration
+        with MicroVM settings.
       '';
     };
   };
