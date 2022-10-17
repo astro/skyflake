@@ -50,6 +50,7 @@ ${''
     ip tuntap del ${id} mode tap || true
   fi
   ip tuntap add ${id} mode tap user microvm
+  ip link set ${id} up
 ''}EOD
           }
         }
