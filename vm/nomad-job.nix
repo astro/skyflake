@@ -98,6 +98,28 @@ ${''
           }
         '') config.microvm.shares}
 
+      task "copy-system" {
+        driver = "raw_exec"
+        lifecycle {
+          hook = "prestart"
+        }
+        config {
+          command = "local/copy-system.sh"
+        }
+        template {
+          destination = "local/copy-system.sh"
+          perms = "755"
+          data = <<EOD
+${''
+  #! /run/current-system/sw/bin/bash -e
+
+  if ! [ -e ${runner} ] ; then
+    /run/current-system/sw/bin/nix copy --from @sharedStorePath@ --no-check-sigs ${runner}
+  fi
+''}EOD
+        }
+      }
+
       task "hypervisor" {
         driver = "raw_exec"
         user = "microvm"
@@ -113,11 +135,6 @@ ${''
 
   mkdir -p ${workDir}
   cd ${workDir}
-
-  if ! [ -e ${runner} ] ; then
-    # TODO: make prestart, remove sudo
-    /run/wrappers/bin/sudo /run/current-system/sw/bin/nix copy --from @sharedStorePath@ --no-check-sigs ${runner}
-  fi
 
   # start hypervisor
   exec ${runner}/bin/microvm-run

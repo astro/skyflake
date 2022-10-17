@@ -152,12 +152,6 @@ in {
           command = ''/run/current-system/sw/bin/nix copy --to ${cfg.sharedStorePath} *'';
           options = [ "NOPASSWD" ];
         } ];
-      } {
-        users = [ "microvm" ];
-        commands = [ {
-          command = ''/run/current-system/sw/bin/nix copy --from ${cfg.sharedStorePath} *'';
-          options = [ "NOPASSWD" ];
-        } ];
       } ];
     };
 
