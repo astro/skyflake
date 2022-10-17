@@ -160,5 +160,10 @@ in {
         } ];
       } ];
     };
+
+    systemd.tmpfiles.rules = [
+      # workDir for nomad jobs
+      "d /run/microvms 0700 microvm kvm - -"
+    ];
   };
 }

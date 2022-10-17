@@ -10,7 +10,7 @@
 let
   inherit (pkgs) lib;
 
-  stateDir = "$XDG_RUNTIME_DIR/microvms/${user}/${repo}/${vmName}";
+  workDir = "/run/microvms/${user}/${repo}/${vmName}";
 
 in pkgs.writeText "${user}-${repo}-${vmName}.job" ''
   job "${user}-${repo}-${vmName}" {
@@ -76,8 +76,9 @@ ${''
 ${''
   #! /run/current-system/sw/bin/bash
 
-  mkdir -p ${stateDir}
-  cd ${stateDir}
+  mkdir -p ${workDir}
+  chown microvm:kvm ${workDir}
+  cd ${workDir}
 
   mkdir -p ${source}
   exec ${pkgs.virtiofsd}/bin/virtiofsd \
@@ -110,8 +111,8 @@ ${''
 ${''
   #! /run/current-system/sw/bin/bash
 
-  mkdir -p ${stateDir}
-  cd ${stateDir}
+  mkdir -p ${workDir}
+  cd ${workDir}
 
   if ! [ -e ${runner} ] ; then
     sudo nix copy --from @sharedStorePath@ --no-check-sigs ${runner}
@@ -147,8 +148,8 @@ ${''
 ${''
   #! /run/current-system/sw/bin/bash
 
-  mkdir -p ${stateDir}
-  cd ${stateDir}
+  mkdir -p ${workDir}
+  cd ${workDir}
 
   # stop hypervisor on signal
   function handle_signal() {
