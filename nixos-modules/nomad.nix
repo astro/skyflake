@@ -30,7 +30,7 @@ in
   
     services.nomad = {
       enable = true;
-      package = pkgs.nomad_1_3;
+      package = pkgs.nomad_1_4;
       dropPrivileges = false;
       enableDocker = false;
 
