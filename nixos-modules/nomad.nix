@@ -53,6 +53,8 @@ in
     environment.systemPackages = with pkgs; [
       # alternatives to the nomad web ui
       wander damon
+      # needed for microvms
+      virtiofsd
     ];
   };
 }

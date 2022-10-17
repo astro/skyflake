@@ -13,7 +13,7 @@
       mountPoint = "/nix/.ro-store";
     } ];
     volumes = [ {
-      image = "example1${toString instance}.img";
+      image = "example${toString instance}.img";
       mountPoint = "/persist";
       size = 20 * 1024;
     } ];

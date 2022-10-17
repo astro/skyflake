@@ -42,7 +42,7 @@ in pkgs.writeText "${user}-${repo}-${vmName}.job" ''
             perms = "755"
             data = <<EOD
 ${''
-  #! /run/current-system/sw/bin/bash
+  #! /run/current-system/sw/bin/bash -e
 
   # TODO: attach to bridge?
   if [ -d /sys/class/net/${id} ]; then
@@ -74,14 +74,14 @@ ${''
               perms = "755"
               data = <<EOD
 ${''
-  #! /run/current-system/sw/bin/bash
+  #! /run/current-system/sw/bin/bash -e
 
   mkdir -p ${workDir}
   chown microvm:kvm ${workDir}
   cd ${workDir}
 
   mkdir -p ${source}
-  exec ${pkgs.virtiofsd}/bin/virtiofsd \
+  exec /run/current-system/sw/bin/virtiofsd \
     --socket-path=${socket} \
     --socket-group=kvm \
     --shared-dir=${source} \
@@ -109,13 +109,14 @@ ${''
           perms = "755"
           data = <<EOD
 ${''
-  #! /run/current-system/sw/bin/bash
+  #! /run/current-system/sw/bin/bash -e
 
   mkdir -p ${workDir}
   cd ${workDir}
 
   if ! [ -e ${runner} ] ; then
-    sudo nix copy --from @sharedStorePath@ --no-check-sigs ${runner}
+    # TODO: make prestart, remove sudo
+    /run/wrappers/bin/sudo /run/current-system/sw/bin/nix copy --from @sharedStorePath@ --no-check-sigs ${runner}
   fi
 
   # start hypervisor
@@ -146,7 +147,7 @@ ${''
           perms = "755"
           data = <<EOD
 ${''
-  #! /run/current-system/sw/bin/bash
+  #! /run/current-system/sw/bin/bash -e
 
   mkdir -p ${workDir}
   cd ${workDir}

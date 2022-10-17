@@ -30,7 +30,7 @@ let
     PATH=${lib.makeBinPath ([
       git nix
       config.services.nomad.package
-    ])}:$PATH
+    ])}:\$PATH
 
     REF="\$1"
     REV="\$3"
@@ -77,8 +77,7 @@ let
         echo "No systems were built."
         exit 0
       fi
-      echo "Skyflake is raining systems..." >&2
-      ls -la >&2
+      echo "Skyflake is cooking systems..." >&2
       sudo nix copy --to ${cfg.sharedStorePath} --no-check-sigs $(for f in * ; do readlink $f; done)
 
       echo "Skyflake is launching machines:" >&2
@@ -144,18 +143,19 @@ in {
       ) userConfig.sshKeys;
     }) config.skyflake.users;
 
+    # allowing commands to copy to/from shared store
     security.sudo = {
       enable = true;
       extraRules = [ {
         groups = [ "users" ];
         commands = [ {
-          command = ''${pkgs.nix}/bin/nix copy --to ${cfg.sharedStorePath} *'';
+          command = ''/run/current-system/sw/bin/nix copy --to ${cfg.sharedStorePath} *'';
           options = [ "NOPASSWD" ];
         } ];
       } {
         users = [ "microvm" ];
         commands = [ {
-          command = ''${pkgs.nix}/bin/nix copy *'';
+          command = ''/run/current-system/sw/bin/nix copy --from ${cfg.sharedStorePath} *'';
           options = [ "NOPASSWD" ];
         } ];
       } ];
