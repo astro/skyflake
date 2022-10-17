@@ -36,7 +36,10 @@ in
 
       settings = rec {
         inherit (cfg) datacenter;
-        plugin.raw_exec.config.enabled = true;
+        plugin.raw_exec.config = {
+          enabled = true;
+          no_cgroups = true;
+        };
 
         server = {
           enabled = cfg.server.enable;
