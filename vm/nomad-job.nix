@@ -120,6 +120,29 @@ ${''
         }
       }
 
+      task "volume-dirs" {
+        driver = "raw_exec"
+        lifecycle {
+          hook = "prestart"
+        }
+        config {
+          command = "local/make-dirs.sh"
+        }
+        template {
+          destination = "local/make-dirs.sh"
+          perms = "755"
+          data = <<EOD
+${''
+  #! /run/current-system/sw/bin/bash -e
+
+  ${lib.concatMapStrings ({ image, ... }: ''
+    mkdir -p "${dirOf image}"
+    chown microvm:kvm "${dirOf image}"
+  '') config.microvm.volumes}
+''}EOD
+        }
+      }
+
       task "hypervisor" {
         driver = "raw_exec"
         user = "microvm"

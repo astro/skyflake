@@ -29,18 +29,20 @@ in
     hypervisor = "cloud-hypervisor";
     vcpu = config.deployment.vcpu;
     mem = config.deployment.mem;
+
     shares = [ {
       proto = "virtiofs";
       tag = "ro-store";
       source = "/nix/store";
       mountPoint = "/nix/.ro-store";
     } ];
-    # volumes = [ {
-    #   image = "/storage/${vmName}";
-    #   mountPoint = config.microvm.writableStoreOverlay;
-    #   size = 8 * 1024;
-    # } ];
-    # writableStoreOverlay = "/nix/.rw-store";
+    volumes = [ {
+      image = "/storage/glusterfs/persist/${user}/${repo}/${vmName}";
+      mountPoint = "/";
+      size = 8 * 1024;
+    } ];
+    writableStoreOverlay = "/nix/.rw-store";
+
     interfaces = [ {
       type = "tap";
       id =
@@ -60,4 +62,5 @@ in
       mac = generateMacAddress "${user}-${repo}-${vmName}";
     } ];
   };
+
 }
