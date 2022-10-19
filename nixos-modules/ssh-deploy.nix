@@ -58,6 +58,8 @@ let
     }}
     nix build -f build-vm.nix \
       -o "$SYSTEMS/\$NAME" \
+      --extra-substituters ${cfg.sharedStorePath} \
+      --trusted-substituters ${cfg.sharedStorePath} \
       --arg nixpkgsRef "\"${nixpkgs}\"" \
       --arg system "\"${pkgs.system}\"" \
       --arg datacenters '${lib.generators.toPretty {} cfg.datacenters}' \
@@ -142,6 +144,9 @@ in {
         "${lib.concatStringsSep "," sshKeyOpts} ${sshKey}"
       ) userConfig.sshKeys;
     }) config.skyflake.users;
+
+    # lets the hook use $sharedStorePath
+    nix.settings.trusted-users = builtins.attrNames config.skyflake.users;
 
     # allowing commands to copy to/from shared store
     security.sudo = {
