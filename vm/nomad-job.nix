@@ -177,6 +177,9 @@ ${''
       }
 
       task "wait-shutdown" {
+        lifecycle {
+          hook = "poststart"
+        }
         driver = "raw_exec"
         user = "microvm"
         config {
