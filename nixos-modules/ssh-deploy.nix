@@ -50,7 +50,7 @@ let
     FLAKE=\$(nix store add-path "\$FLAKETMP" -n "$REPO")
     rm -r "\$FLAKETMP"
 
-    echo "Skyflake condenses $REPO#\$NAME"
+    echo "Skyflake is cooking $REPO#\$NAME"
     cd ${substituteAllFiles {
       src = ../vm;
       files = [ "." ];
@@ -79,8 +79,8 @@ let
         echo "No systems were built."
         exit 0
       fi
-      echo "Skyflake is cooking systems..." >&2
-      sudo nix copy --to ${cfg.sharedStorePath} --no-check-sigs $(for f in * ; do readlink $f; done)
+      echo "Skyflake is raining systems..." >&2
+      sudo nix copy --to ${cfg.sharedStorePath} --no-check-sigs $(readlink *)
 
       echo "Skyflake is launching machines:" >&2
       for SYSTEM in * ; do
@@ -90,7 +90,7 @@ let
       rm -r $SYSTEMS
       echo All done >&2
     else
-      echo "Invalid SSH_ORIGINAL_COMMAND: $SSH_ORIGINAL_COMMAND" >&2
+      echo "Invalid SSH command: $SSH_ORIGINAL_COMMAND" >&2
       exit 1
     fi
   '';
