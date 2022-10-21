@@ -75,11 +75,6 @@
           VNI = 1;
           Group = "ff02::bbbb";
         };
-        # extraConfig = ''
-        #   [Geneve]
-        #   Id=1
-        #   Remove=ff02::bbbb
-        # '';
       };
     };
 
