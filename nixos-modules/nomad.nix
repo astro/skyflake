@@ -38,6 +38,7 @@ in
         inherit (cfg) datacenter;
         plugin.raw_exec.config = {
           enabled = true;
+          # unfortunately, this feature removes the ability to use /dev/kvm
           no_cgroups = true;
         };
 
