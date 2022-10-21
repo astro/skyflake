@@ -28,6 +28,13 @@ in pkgs.writeText "${user}-${repo}-${vmName}.job" ''
         mode = "delay"
         interval = "600s"
       }
+
+      constraint {
+        attribute = "''${attr.cpu.numcores}"
+        operator = ">="
+        value = "${toString config.microvm.vcpu}"
+      }
+
       ${lib.concatMapStrings (interface@{ id, ... }: ''
         task "interface-${id}" {
           lifecycle {
@@ -94,7 +101,7 @@ ${''
             kill_timeout = "100s"
 
             resources {
-              memory = ${toString (config.microvm.vcpu * 32)}
+              memory = ${toString (config.microvm.vcpu * 10)}
               cpu = ${toString (config.microvm.vcpu * 10)}
             }
           }
@@ -172,7 +179,7 @@ ${''
         kill_timeout = "95s"
 
         resources {
-          memory = ${toString config.microvm.mem}
+          memory = ${toString (config.microvm.mem + 8)}
           cpu = ${toString (config.microvm.vcpu * 50)}
         }
         # TODO: cpu core constraint
