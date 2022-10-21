@@ -5,7 +5,7 @@
 {
   microvm = {
     vcpu = 2;
-    mem = 2048;
+    mem = 4096;
 
     shares = [ {
       tag = "ro-store";
