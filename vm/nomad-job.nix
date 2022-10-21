@@ -36,33 +36,59 @@ in pkgs.writeText "${user}-${repo}-${vmName}.job" ''
       }
 
       ${lib.concatMapStrings (interface@{ id, ... }: ''
-        task "interface-${id}" {
+        task "add-interface-${id}" {
           lifecycle {
             hook = "prestart"
           }
           driver = "raw_exec"
           user = "root"
           config {
-            command = "local/interface-${id}.sh"
+            command = "local/add-interface-${id}.sh"
           }
           template {
-            destination = "local/interface-${id}.sh"
+            destination = "local/add-interface-${id}.sh"
             perms = "755"
             data = <<EOD
 ${''
   #! /run/current-system/sw/bin/bash -e
 
-  # TODO: attach to bridge?
-  if [ -d /sys/class/net/${id} ]; then
-    echo "WARNING: Removing stale tap interface ${id}" >&2
-    ip tuntap del ${id} mode tap || true
+  IFACE="${id}"
+
+  if [ -d /sys/class/net/"$IFACE" ]; then
+    echo "WARNING: Removing stale tap interface "$IFACE"" >&2
+    ip tuntap del "$IFACE" mode tap || true
   fi
-  ip tuntap add ${id} mode tap user microvm
-  ip link set ${id} up
+  ip tuntap add "$IFACE" mode tap user microvm
+  ${config.skyflake.deploy.startTapScript}
+  ip link set "$IFACE" up
 ''}EOD
           }
         }
-        # TODO: interface remove poststop
+
+        task "delete-interface-${id}" {
+          lifecycle {
+            hook = "poststop"
+          }
+          driver = "raw_exec"
+          user = "root"
+          config {
+            command = "local/delete-interface-${id}.sh"
+          }
+          template {
+            destination = "local/delete-interface-${id}.sh"
+            perms = "755"
+            data = <<EOD
+${''
+  #! /run/current-system/sw/bin/bash -e
+
+  IFACE="${id}"
+
+  ${config.skyflake.deploy.stopTapScript}
+  ip link set "$IFACE" down
+  ip tuntap del "$IFACE" mode tap
+''}EOD
+          }
+        }
       '') config.microvm.interfaces}
 
       ${lib.concatMapStrings (share@{ tag, source, socket, proto, ... }:

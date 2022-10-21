@@ -63,4 +63,14 @@ in
     } ];
   };
 
+  config.skyflake.deploy.startTapScript = ''
+    set -x
+    ip link set dev "$IFACE" master vmbr0
+    _UID=$(id -u "${user}")
+    ip link set dev "$IFACE" group $_UID
+    # assign vlan equal to user uid
+    bridge vlan add dev "$IFACE" vid $_UID pvid untagged
+  '';
+
+  config.fileSystems."/".fsType = lib.mkForce "ext4";
 }

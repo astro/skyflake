@@ -28,14 +28,37 @@ let
         modules = [
           microvm.nixosModules.microvm
           {
-            microvm = {
-              # Overrride with custom-built squashfs
-              bootDisk = bootDisk;
-              # Prepend (override) regInfo with our custom-built
-              kernelParams = pkgs.lib.mkBefore [ "regInfo=${bootDisk.regInfo}" ];
+            options.skyflake = with lib; {
+              deploy.startTapScript = lib.mkOption {
+                type = types.lines;
+                default = "";
+                description = ''
+                  Commands to run for a TAP interface of MicroVM to be started.
+
+                  Part of the nomad job. Do not rely on store paths here.
+                '';
+              };
+              deploy.stopTapScript = lib.mkOption {
+                type = types.lines;
+                default = "";
+                description = ''
+                  Commands to run for a TAP interface after a MicroVM is shut down.
+
+                  Part of the nomad job. Do not rely on store paths here.
+                '';
+              };
             };
-            system.build.skyflake-deployment = {
-              inherit pkgs system datacenters user repo flakeRef vmName;
+
+            config = {
+              microvm = {
+                # Overrride with custom-built squashfs
+                bootDisk = bootDisk;
+                # Prepend (override) regInfo with our custom-built
+                kernelParams = pkgs.lib.mkBefore [ "regInfo=${bootDisk.regInfo}" ];
+              };
+              system.build.skyflake-deployment = {
+                inherit pkgs system datacenters user repo flakeRef vmName;
+              };
             };
           }
           # From the host's skyflake.deploy.customizationModule

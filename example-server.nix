@@ -1,6 +1,6 @@
 { instance }:
 
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   microvm = {
@@ -50,16 +50,73 @@
 
   networking.useDHCP = false;
   networking.useNetworkd = true;
-  systemd.network.networks = {
-    "00-eth" = {
-      matchConfig.MACAddress = (builtins.head config.microvm.interfaces).mac;
-      networkConfig = {
-        DHCP = "ipv4";
-        IPv6AcceptRA = true;
+  systemd.network = {
+    netdevs = {
+      # a bridge to connect microvms
+      "vmbr0" = {
+        netdevConfig = {
+          Kind = "bridge";
+          Name = "vmbr0";
+        };
+        extraConfig = ''
+          [Bridge]
+          VLANFiltering=on
+          DefaultPVID=none
+        '';
       };
-      addresses = [ {
-        addressConfig.Address = "fec0::${toString instance}/64";
-      } ];
+      # a tunnel to join the bridges across cluster nodes
+      "tun0" = {
+        netdevConfig = {
+          Kind = "vxlan";
+          Name = "tun0";
+          MTUBytes = "1522";
+        };
+        vxlanConfig = {
+          VNI = 1;
+          Group = "ff02::bbbb";
+        };
+        # extraConfig = ''
+        #   [Geneve]
+        #   Id=1
+        #   Remove=ff02::bbbb
+        # '';
+      };
+    };
+
+    networks = {
+      # uplink
+      "00-eth" = {
+        matchConfig.MACAddress = (builtins.head config.microvm.interfaces).mac;
+        networkConfig = {
+          DHCP = "ipv4";
+          IPv6AcceptRA = true;
+          # create the tunnel over this ethernet
+          VXLAN = "tun0";
+        };
+        addresses = [ {
+          addressConfig.Address = "fec0::${toString instance}/64";
+        } ];
+      };
+      # bridge is a dumb switch without addresses on the host
+      "01-vmbr0" = {
+        matchConfig.Name = "vmbr0";
+        linkConfig.MTUBytes = "1522";
+        networkConfig = {
+          DHCP = "no";
+          # LinkLocalAddressing = "no";
+        };
+      };
+      # expand bridge over tunnel
+      "02-tun0" = {
+        matchConfig.Name = "tun0";
+        # not working?
+        linkConfig.MTUBytes = "1522";
+        networkConfig.Bridge = "vmbr0";
+        extraConfig = ''
+          [BridgeVLAN]
+          VLAN=1-4094
+        '';
+      };
     };
   };
 
@@ -85,4 +142,8 @@
       };
     };
   };
+
+  environment.systemPackages = with pkgs; [
+    tcpdump
+  ];
 }
