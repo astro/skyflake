@@ -21,11 +21,12 @@ in pkgs.writeText "${user}-${repo}-${vmName}.job" ''
 
     group "nixos-${config.system.nixos.label}" {
       count = 1
+
       restart {
         attempts = 1
-        delay = "2s"
+        delay = "30s"
         mode = "delay"
-        interval = "10s"
+        interval = "600s"
       }
       ${lib.concatMapStrings (interface@{ id, ... }: ''
         task "interface-${id}" {
@@ -89,7 +90,8 @@ ${''
 ''}EOD
             }
             kill_signal = "SIGCONT"
-            kill_timeout = "15s"
+            # longer than kill_timeout of hypervisor task
+            kill_timeout = "100s"
 
             resources {
               memory = ${toString (config.microvm.vcpu * 32)}
@@ -166,7 +168,8 @@ ${''
 
         # don't get killed immediately but get shutdown by wait-shutdown
         kill_signal = "SIGCONT"
-        kill_timeout = "15s"
+        # systemd timeout is at 90s by default
+        kill_timeout = "95s"
 
         resources {
           memory = ${toString config.microvm.mem}
