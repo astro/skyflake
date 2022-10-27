@@ -58,8 +58,7 @@ let
     }}
     nix build -f build-vm.nix \
       -o "$SYSTEMS/\$NAME" \
-      --extra-substituters ${cfg.sharedStorePath} \
-      --trusted-substituters ${cfg.sharedStorePath} \
+      --extra-substituters ${cfg.sharedStorePath}/?trusted=1 \
       --arg nixpkgsRef "\"${nixpkgs}\"" \
       --arg system "\"${pkgs.system}\"" \
       --arg datacenters '${lib.generators.toPretty {} cfg.datacenters}' \
