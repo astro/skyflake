@@ -195,10 +195,23 @@ ${''
   cd ${workDir}
 
   # start hypervisor
-  exec ${runner}/bin/microvm-run
+  ${runner}/bin/microvm-run &
+
+  # stop hypervisor on signal
+  function handle_signal() {
+    echo "Received signal, shutting down" >&2
+    date >&2
+    ${runner}/bin/microvm-shutdown
+    echo "Done" >&2
+    date >&2
+    exit
+  }
+  trap handle_signal CONT
+  wait
 ''}EOD
         }
 
+        leader = true
         # don't get killed immediately but get shutdown by wait-shutdown
         kill_signal = "SIGCONT"
         # systemd timeout is at 90s by default
@@ -208,47 +221,6 @@ ${''
           memory = ${toString (config.microvm.mem + 8)}
           cpu = ${toString (config.microvm.vcpu * 50)}
         }
-        # TODO: cpu core constraint
-
-      }
-
-      task "wait-shutdown" {
-        lifecycle {
-          hook = "poststart"
-        }
-        driver = "raw_exec"
-        user = "microvm"
-        config {
-          command = "local/wait-shutdown.sh"
-        }
-        template {
-          destination = "local/wait-shutdown.sh"
-          perms = "755"
-          data = <<EOD
-${''
-  #! /run/current-system/sw/bin/bash -e
-
-  mkdir -p ${workDir}
-  cd ${workDir}
-
-  # stop hypervisor on signal
-  function handle_signal() {
-    echo "Received signal, shutting down" >&2
-    ${runner}/bin/microvm-shutdown
-    echo "Done" >&2
-    exit
-  }
-  trap handle_signal TERM
-  # wait
-  while true; do
-    sleep 86400 &
-    # catch signals:
-    wait
-  done
-''}EOD
-        }
-
-        kill_signal = "SIGTERM"
       }
     }
   }
