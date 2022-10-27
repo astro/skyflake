@@ -79,7 +79,15 @@ let
         exit 0
       fi
       echo "Skyflake is raining systems..." >&2
-      sudo nix copy --to ${cfg.sharedStorePath} --no-check-sigs $(readlink *)
+      for SYSTEM in * ; do
+        MICROVM=$(readlink "$SYSTEM")
+        # Copy to shared store
+        sudo nix copy --to ${cfg.sharedStorePath} --no-check-sigs "$MICROVM"
+        # Register gcroot
+        mkdir -p "${cfg.sharedGcrootsPath}/$USER/$REPO"
+        rm -f "${cfg.sharedGcrootsPath}/$USER/$REPO/$SYSTEM"
+        ln -s "$MICROVM" "${cfg.sharedGcrootsPath}/$USER/$REPO/$SYSTEM"
+      done
 
       echo "Skyflake is launching machines:" >&2
       for SYSTEM in * ; do
@@ -125,6 +133,16 @@ in {
       '';
     };
 
+    sharedGcrootsPath = mkOption {
+      type = types.str;
+      default = "${(builtins.head config.skyflake.storage.glusterfs.fileSystems).mountPoint}/gcroots";
+      description = ''
+        Directory which is mounted on all nodes, is linked from
+        /nix/var/nix/gcroots/, and contains links to all currently
+        required microvms.
+      '';
+    };
+
     customizationModule = mkOption {
       type = types.path;
       default = ../default-customization.nix;
@@ -162,6 +180,10 @@ in {
     systemd.tmpfiles.rules = [
       # workDir for nomad jobs
       "d /run/microvms 0700 microvm kvm - -"
-    ];
+      # microvm gcroots
+      "L+ /nix/var/nix/gcroots/skyflake-microvms - - - - ${cfg.sharedGcrootsPath}"
+    ] ++ map (userName:
+      "d ${config.skyflake.deploy.sharedGcrootsPath}/${userName} 0750 ${userName} root - -"
+    ) (builtins.attrNames config.skyflake.users);
   };
 }
