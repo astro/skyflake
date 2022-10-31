@@ -113,43 +113,87 @@ let
   ];
 
   cfg = config.skyflake.deploy;
+  gcCfg = config.skyflake.gc;
 
 in {
-  options.skyflake.deploy = with lib; {
-    datacenters = mkOption {
-      type = with types; listOf str;
-      default = [ config.skyflake.nomad.datacenter ];
-      description = ''
-        List of datacenters to deploy to.
-      '';
+  options.skyflake = with lib; {
+    deploy = {
+      datacenters = mkOption {
+        type = with types; listOf str;
+        default = [ config.skyflake.nomad.datacenter ];
+        description = ''
+          List of datacenters to deploy to.
+        '';
+      };
+
+      sharedStorePath = mkOption {
+        type = types.str;
+        default = "${(builtins.head config.skyflake.storage.glusterfs.fileSystems).mountPoint}/store";
+        description = ''
+          Directory which is mounted on all nodes that will be used to
+          share the /nix/store with MicroVMs.
+        '';
+      };
+
+      sharedGcrootsPath = mkOption {
+        type = types.str;
+        default = "${(builtins.head config.skyflake.storage.glusterfs.fileSystems).mountPoint}/gcroots";
+        description = ''
+          Directory which is mounted on all nodes, is linked from
+          /nix/var/nix/gcroots/, and contains links to all currently
+          required microvms.
+        '';
+      };
+
+      customizationModule = mkOption {
+        type = types.path;
+        default = ../default-customization.nix;
+        description = ''
+          NixOS module to add when extending a guest NixOS configuration
+          with MicroVM settings.
+        '';
+      };
     };
 
-    sharedStorePath = mkOption {
-      type = types.str;
-      default = "${(builtins.head config.skyflake.storage.glusterfs.fileSystems).mountPoint}/store";
-      description = ''
-        Directory which is mounted on all nodes that will be used to
-        share the /nix/store with MicroVMs.
-      '';
-    };
+    gc = {
+      dates = mkOption {
+        type = types.str;
+        default = "hourly";
+        description = lib.mdDoc ''
+          How often or when garbage collection is performed. For most desktop and server systems
+          a sufficient garbage collection is once a week.
 
-    sharedGcrootsPath = mkOption {
-      type = types.str;
-      default = "${(builtins.head config.skyflake.storage.glusterfs.fileSystems).mountPoint}/gcroots";
-      description = ''
-        Directory which is mounted on all nodes, is linked from
-        /nix/var/nix/gcroots/, and contains links to all currently
-        required microvms.
-      '';
-    };
+          The format is described in
+          {manpage}`systemd.time(7)`.
+        '';
+      };
 
-    customizationModule = mkOption {
-      type = types.path;
-      default = ../default-customization.nix;
-      description = ''
-        NixOS module to add when extending a guest NixOS configuration
-        with MicroVM settings.
-      '';
+      randomizedDelaySec = mkOption {
+        default = "0";
+        type = types.str;
+        example = "15min";
+        description = lib.mdDoc ''
+          Add a randomized delay before each garbage collection.
+          The delay will be chosen between zero and this value.
+          This value must be a time span in the format specified by
+          {manpage}`systemd.time(7)`
+        '';
+      };
+
+      persistent = mkOption {
+        default = false;
+        type = types.bool;
+        description = lib.mdDoc ''
+          Takes a boolean argument. If true, the time when the service
+          unit was last triggered is stored on disk. When the timer is
+          activated, the service unit is triggered immediately if it
+          would have been triggered at least once during the time when
+          the timer was inactive. Such triggering is nonetheless
+          subject to the delay imposed by RandomizedDelaySec=. This is
+          useful to catch up on missed runs of the service when the
+          system was powered down.
+        '';
+      };
     };
   };
 
@@ -185,5 +229,18 @@ in {
     ] ++ map (userName:
       "d ${config.skyflake.deploy.sharedGcrootsPath}/${userName} 0750 ${userName} root - -"
     ) (builtins.attrNames config.skyflake.users);
+
+    # GC
+    systemd.services.nix-gc-shared-overlay = {
+      description = "Nix Garbage Collector";
+      serviceConfig.ExecStart = "${config.nix.package.out}/bin/nix-store --gc --store ${cfg.sharedStorePath}";
+      startAt = gcCfg.dates;
+    };
+    systemd.timers.nix-gc-shared-overlay = {
+      timerConfig = {
+        RandomizedDelaySec = gcCfg.randomizedDelaySec;
+        Persistent = gcCfg.persistent;
+      };
+    };
   };
 }
