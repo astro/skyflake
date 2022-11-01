@@ -24,6 +24,14 @@ in
       type = with types; listOf str;
       default = builtins.attrNames config.skyflake.nodes;
     };
+
+    client.enable = mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Should the nomad-agent run in client mode to run tasks?
+      '';
+    };
   };
 
   config = {
@@ -48,7 +56,7 @@ in
           server_join.retry_join = cfg.servers;
         };
         client = {
-          enabled = true;
+          enabled = cfg.client.enable;
           inherit (server) server_join;
         };
       };
