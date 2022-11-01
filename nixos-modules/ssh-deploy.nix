@@ -195,6 +195,14 @@ in {
         '';
       };
     };
+
+    microvmUid = mkOption {
+      type = types.int;
+      default = 999;
+      description = ''
+        A fixed UID for MicroVM files makes sense for the whole cluster.
+      '';
+    };
   };
 
   config = {
@@ -204,7 +212,10 @@ in {
       openssh.authorizedKeys.keys = map (sshKey:
         "${lib.concatStringsSep "," sshKeyOpts} ${sshKey}"
       ) userConfig.sshKeys;
-    }) config.skyflake.users;
+    }) config.skyflake.users // {
+      # stable uid is useful across glusterfs
+      microvm.uid = config.skyflake.microvmUid;
+    };
 
     # lets the hook use $sharedStorePath
     nix.settings.trusted-users = builtins.attrNames config.skyflake.users;
