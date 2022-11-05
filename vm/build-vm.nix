@@ -21,7 +21,11 @@ let
   extended =
     # Safety check
     if original.config ? microvm
-    then throw "VM config must not already contain microvm configuration! Use skyflake.vm instead."
+    then throw ''
+      VM config must not already contain microvm configuration! Use options from the customizationModule instead.
+
+      Value: ${pkgs.lib.generators.toPretty {} original.config.microvm}
+    ''
     else
       # Customizations to the imported NixOS system
       original.extendModules {
