@@ -58,7 +58,7 @@ let
     }}
     nix build -f build-vm.nix \
       -o "$SYSTEMS/\$NAME" \
-      --extra-substituters ${cfg.sharedStorePath}/?trusted=1 \
+      --extra-substituters file://${cfg.sharedStorePath}/?trusted=1 \
       --arg nixpkgsRef "\"${nixpkgs}\"" \
       --arg system "\"${pkgs.system}\"" \
       --arg datacenters '${lib.generators.toPretty {} cfg.datacenters}' \
@@ -67,6 +67,15 @@ let
       --arg flakeRef "\"\$FLAKE\"" \
       --arg vmName "\"\$NAME\"" \
       --arg microvmFlake "\"${microvm}\""
+
+    SYSTEM=\$(readlink "$SYSTEMS/\$NAME")
+    # Copy to shared store
+    sudo nix copy --to file://${cfg.sharedStorePath} --no-check-sigs "\$SYSTEM"
+    # Register gcroot
+    mkdir -p "${cfg.sharedGcrootsPath}/$USER/$REPO"
+    rm -f "${cfg.sharedGcrootsPath}/$USER/$REPO/\$NAME"
+    ln -s "\$SYSTEM" "${cfg.sharedGcrootsPath}/$USER/$REPO/\$NAME"
+
     END_OF_HOOK
       chmod a+x hooks/update
 
@@ -78,21 +87,16 @@ let
         echo "No systems were built."
         exit 0
       fi
-      echo "Skyflake is raining systems..." >&2
-      for SYSTEM in * ; do
-        MICROVM=$(readlink "$SYSTEM")
-        # Copy to shared store
-        sudo nix copy --to ${cfg.sharedStorePath} --no-check-sigs "$MICROVM"
-        # Register gcroot
-        mkdir -p "${cfg.sharedGcrootsPath}/$USER/$REPO"
-        rm -f "${cfg.sharedGcrootsPath}/$USER/$REPO/$SYSTEM"
-        ln -s "$MICROVM" "${cfg.sharedGcrootsPath}/$USER/$REPO/$SYSTEM"
-      done
 
       echo "Skyflake is launching machines:" >&2
       for SYSTEM in * ; do
         echo $SYSTEM >&2
         nomad run -detach "$SYSTEM" >/dev/null
+
+        # Register gcroot
+        mkdir -p "${cfg.sharedGcrootsPath}/$USER/$REPO"
+        rm -f "${cfg.sharedGcrootsPath}/$USER/$REPO/$SYSTEM"
+        ln -s "$SYSTEM" "${cfg.sharedGcrootsPath}/$USER/$REPO/$SYSTEM"
       done
       rm -r $SYSTEMS
       echo All done >&2
@@ -226,7 +230,7 @@ in {
       extraRules = [ {
         groups = [ "users" ];
         commands = [ {
-          command = ''/run/current-system/sw/bin/nix copy --to ${cfg.sharedStorePath} *'';
+          command = ''/run/current-system/sw/bin/nix copy --to file\://${cfg.sharedStorePath} *'';
           options = [ "NOPASSWD" ];
         } ];
       } ];
@@ -244,7 +248,7 @@ in {
     # GC
     systemd.services.nix-gc-shared-overlay = {
       description = "Nix Garbage Collector";
-      serviceConfig.ExecStart = "${config.nix.package.out}/bin/nix-store --gc --store ${cfg.sharedStorePath}";
+      serviceConfig.ExecStart = "${config.nix.package.out}/bin/nix-store --gc --store file://${cfg.sharedStorePath}";
       startAt = gcCfg.dates;
     };
     systemd.timers.nix-gc-shared-overlay = {
