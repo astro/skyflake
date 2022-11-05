@@ -12,43 +12,43 @@ let
 
   workDir = "/run/microvms/${user}/${repo}/${vmName}";
 
-in pkgs.writeText "${user}-${repo}-${vmName}.job" ''
-  job "${user}-${repo}-${vmName}" {
-    datacenters = [${lib.concatMapStringsSep ", " (datacenter:
-      "\"${datacenter}\""
-    ) datacenters}]
-    type = "service"
+  jobFile = pkgs.writeText "${user}-${repo}-${vmName}.job" ''
+    job "${user}-${repo}-${vmName}" {
+      datacenters = [${lib.concatMapStringsSep ", " (datacenter:
+        "\"${datacenter}\""
+      ) datacenters}]
+      type = "service"
 
-    group "nixos-${config.system.nixos.label}" {
-      count = 1
+      group "nixos-${config.system.nixos.label}" {
+        count = 1
 
-      restart {
-        attempts = 1
-        delay = "30s"
-        mode = "delay"
-        interval = "600s"
-      }
+        restart {
+          attempts = 1
+          delay = "30s"
+          mode = "delay"
+          interval = "600s"
+        }
 
-      constraint {
-        attribute = "''${attr.cpu.numcores}"
-        operator = ">="
-        value = "${toString config.microvm.vcpu}"
-      }
+        constraint {
+          attribute = "''${attr.cpu.numcores}"
+          operator = ">="
+          value = "${toString config.microvm.vcpu}"
+        }
 
-      ${lib.concatMapStrings (interface@{ id, ... }: ''
-        task "add-interface-${id}" {
-          lifecycle {
-            hook = "prestart"
-          }
-          driver = "raw_exec"
-          user = "root"
-          config {
-            command = "local/add-interface-${id}.sh"
-          }
-          template {
-            destination = "local/add-interface-${id}.sh"
-            perms = "755"
-            data = <<EOD
+        ${lib.concatMapStrings (interface@{ id, ... }: ''
+          task "add-interface-${id}" {
+            lifecycle {
+              hook = "prestart"
+            }
+            driver = "raw_exec"
+            user = "root"
+            config {
+              command = "local/add-interface-${id}.sh"
+            }
+            template {
+              destination = "local/add-interface-${id}.sh"
+              perms = "755"
+              data = <<EOD
 ${''
   #! /run/current-system/sw/bin/bash -e
 
@@ -62,22 +62,22 @@ ${''
   ${config.skyflake.deploy.startTapScript}
   ip link set "$IFACE" up
 ''}EOD
+            }
           }
-        }
 
-        task "delete-interface-${id}" {
-          lifecycle {
-            hook = "poststop"
-          }
-          driver = "raw_exec"
-          user = "root"
-          config {
-            command = "local/delete-interface-${id}.sh"
-          }
-          template {
-            destination = "local/delete-interface-${id}.sh"
-            perms = "755"
-            data = <<EOD
+          task "delete-interface-${id}" {
+            lifecycle {
+              hook = "poststop"
+            }
+            driver = "raw_exec"
+            user = "root"
+            config {
+              command = "local/delete-interface-${id}.sh"
+            }
+            template {
+              destination = "local/delete-interface-${id}.sh"
+              perms = "755"
+              data = <<EOD
 ${''
   #! /run/current-system/sw/bin/bash -e
 
@@ -87,26 +87,26 @@ ${''
   ip link set "$IFACE" down
   ip tuntap del "$IFACE" mode tap
 ''}EOD
+            }
           }
-        }
-      '') config.microvm.interfaces}
+        '') config.microvm.interfaces}
 
-      ${lib.concatMapStrings (share@{ tag, source, socket, proto, ... }:
-        lib.optionalString (proto == "virtiofs") ''
-          task "virtiofsd-${tag}" {
-            lifecycle {
-              hook = "prestart"
-              sidecar = true
-            }
-            driver = "raw_exec"
-            user = "root"
-            config {
-              command = "local/virtiofsd-${tag}.sh"
-            }
-            template {
-              destination = "local/virtiofsd-${tag}.sh"
-              perms = "755"
-              data = <<EOD
+        ${lib.concatMapStrings (share@{ tag, source, socket, proto, ... }:
+          lib.optionalString (proto == "virtiofs") ''
+            task "virtiofsd-${tag}" {
+              lifecycle {
+                hook = "prestart"
+                sidecar = true
+              }
+              driver = "raw_exec"
+              user = "root"
+              config {
+                command = "local/virtiofsd-${tag}.sh"
+              }
+              template {
+                destination = "local/virtiofsd-${tag}.sh"
+                perms = "755"
+                data = <<EOD
 ${''
   #! /run/current-system/sw/bin/bash -e
 
@@ -121,30 +121,28 @@ ${''
     --shared-dir=${source} \
     --sandbox=none
 ''}EOD
-            }
-            kill_signal = "SIGCONT"
-            # longer than kill_timeout of hypervisor task
-            kill_timeout = "100s"
+              }
+              kill_timeout = "5s"
 
-            resources {
-              memory = ${toString (config.microvm.vcpu * 10)}
-              cpu = ${toString (config.microvm.vcpu * 10)}
+              resources {
+                memory = ${toString (config.microvm.vcpu * 10)}
+                cpu = ${toString (config.microvm.vcpu * 10)}
+              }
             }
+          '') config.microvm.shares}
+
+        task "copy-system" {
+          driver = "raw_exec"
+          lifecycle {
+            hook = "prestart"
           }
-        '') config.microvm.shares}
-
-      task "copy-system" {
-        driver = "raw_exec"
-        lifecycle {
-          hook = "prestart"
-        }
-        config {
-          command = "local/copy-system.sh"
-        }
-        template {
-          destination = "local/copy-system.sh"
-          perms = "755"
-          data = <<EOD
+          config {
+            command = "local/copy-system.sh"
+          }
+          template {
+            destination = "local/copy-system.sh"
+            perms = "755"
+            data = <<EOD
 ${''
   #! /run/current-system/sw/bin/bash -e
 
@@ -152,21 +150,21 @@ ${''
     /run/current-system/sw/bin/nix copy --from file://@sharedStorePath@?trusted=1 --no-check-sigs ${runner}
   fi
 ''}EOD
+          }
         }
-      }
 
-      task "volume-dirs" {
-        driver = "raw_exec"
-        lifecycle {
-          hook = "prestart"
-        }
-        config {
-          command = "local/make-dirs.sh"
-        }
-        template {
-          destination = "local/make-dirs.sh"
-          perms = "755"
-          data = <<EOD
+        task "volume-dirs" {
+          driver = "raw_exec"
+          lifecycle {
+            hook = "prestart"
+          }
+          config {
+            command = "local/make-dirs.sh"
+          }
+          template {
+            destination = "local/make-dirs.sh"
+            perms = "755"
+            data = <<EOD
 ${''
   #! /run/current-system/sw/bin/bash -e
 
@@ -175,19 +173,19 @@ ${''
     chown microvm:kvm "${dirOf image}"
   '') config.microvm.volumes}
 ''}EOD
+          }
         }
-      }
 
-      task "hypervisor" {
-        driver = "raw_exec"
-        user = "microvm"
-        config {
-          command = "local/hypervisor.sh"
-        }
-        template {
-          destination = "local/hypervisor.sh"
-          perms = "755"
-          data = <<EOD
+        task "hypervisor" {
+          driver = "raw_exec"
+          user = "microvm"
+          config {
+            command = "local/hypervisor.sh"
+          }
+          template {
+            destination = "local/hypervisor.sh"
+            perms = "755"
+            data = <<EOD
 ${''
   #! /run/current-system/sw/bin/bash -e
 
@@ -209,19 +207,38 @@ ${''
   trap handle_signal CONT
   wait
 ''}EOD
-        }
+          }
 
-        leader = true
-        # don't get killed immediately but get shutdown by wait-shutdown
-        kill_signal = "SIGCONT"
-        # systemd timeout is at 90s by default
-        kill_timeout = "95s"
+          leader = true
+          # don't get killed immediately but get shutdown by wait-shutdown
+          kill_signal = "SIGCONT"
+          # systemd timeout is at 90s by default
+          kill_timeout = "95s"
 
-        resources {
-          memory = ${toString (config.microvm.mem + 8)}
-          cpu = ${toString (config.microvm.vcpu * 50)}
+          resources {
+            memory = ${toString (config.microvm.mem + 8)}
+            cpu = ${toString (config.microvm.vcpu * 50)}
+          }
         }
       }
     }
-  }
-''
+  '';
+
+in
+pkgs.stdenv.mkDerivation {
+  pname = "${user}-${repo}-${vmName}";
+  inherit (config.system.nixos) version;
+
+  src = jobFile;
+
+  phases = [ "checkPhase" "installPhase" ];
+
+  checkInputs = with pkgs; [ nomad ];
+  checkPhase = ''
+    nomad job validate $src
+  '';
+
+  installPhase = ''
+    ln -s $src $out
+  '';
+}
