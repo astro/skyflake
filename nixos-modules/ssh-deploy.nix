@@ -74,6 +74,7 @@ let
     # Register gcroot
     mkdir -p "${cfg.sharedGcrootsPath}/$USER/$REPO"
     rm -f "${cfg.sharedGcrootsPath}/$USER/$REPO/\$NAME"
+    rm -f "${cfg.sharedGcrootsPath}/$USER/$REPO/\$NAME"
     ln -s "\$SYSTEM" "${cfg.sharedGcrootsPath}/$USER/$REPO/\$NAME"
 
     END_OF_HOOK
@@ -89,15 +90,17 @@ let
       fi
 
       echo "Skyflake is launching machines:" >&2
-      for SYSTEM in * ; do
+      for NAME in * ; do
+        SYSTEM=$(readlink $NAME)
         echo $SYSTEM >&2
         nomad run -detach "$SYSTEM" >/dev/null
 
         # Register gcroot
         mkdir -p "${cfg.sharedGcrootsPath}/$USER/$REPO"
-        rm -f "${cfg.sharedGcrootsPath}/$USER/$REPO/$SYSTEM"
-        ln -s "$SYSTEM" "${cfg.sharedGcrootsPath}/$USER/$REPO/$SYSTEM"
+        rm -f "${cfg.sharedGcrootsPath}/$USER/$REPO/$NAME"
+        ln -s "$SYSTEM" "${cfg.sharedGcrootsPath}/$USER/$REPO/$NAME"
       done
+      cd -
       rm -r $SYSTEMS
       echo All done >&2
     else
