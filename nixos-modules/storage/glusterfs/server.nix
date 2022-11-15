@@ -71,8 +71,7 @@ in
 
       serviceConfig = {
         Type = "oneshot";
-        # if peer servers are not up, keep on retrying
-        TimeoutStartSec = "infinity";
+        TimeoutStartSec = "30s";
       };
     };
 
