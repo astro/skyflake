@@ -229,20 +229,26 @@ ${''
   '';
 
 in
-pkgs.stdenv.mkDerivation {
+pkgs.stdenv.mkDerivation rec {
   pname = "${user}-${repo}-${vmName}";
   inherit (config.system.nixos) version;
 
   src = jobFile;
+  NAME = "${pname}.job";
 
-  phases = [ "checkPhase" "installPhase" ];
+  phases = [ "buildPhase" "checkPhase" "installPhase" ];
+
+  buildInputs = with pkgs; [ hclfmt ];
+  buildPhase = ''
+    hclfmt < $src > $NAME
+  '';
 
   checkInputs = with pkgs; [ nomad ];
   checkPhase = ''
-    nomad job validate $src
+    nomad job validate $NAME
   '';
 
   installPhase = ''
-    ln -s $src $out
+    cp $NAME $out
   '';
 }
