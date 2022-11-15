@@ -238,10 +238,14 @@ pkgs.stdenv.mkDerivation rec {
 
   phases = [ "buildPhase" "checkPhase" "installPhase" ];
 
-  buildInputs = with pkgs; [ hclfmt ];
-  buildPhase = ''
-    hclfmt < $src > $NAME
-  '';
+  buildInputs = lib.optionals (pkgs ? hclfmt) [ pkgs.hclfmt ];
+  buildPhase =
+    if pkgs ? hclfmt
+    then ''
+      hclfmt < $src > $NAME
+    '' else ''
+      cp $src $NAME
+    '';
 
   checkInputs = with pkgs; [ nomad ];
   checkPhase = ''
