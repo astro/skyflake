@@ -23,10 +23,14 @@ let
         count = 1
 
         restart {
-          attempts = 1
-          delay = "30s"
-          mode = "delay"
-          interval = "600s"
+          attempts = 3
+          delay = "3s"
+          mode = "fail"
+          interval = "60s"
+        }
+        reschedule {
+          unlimited = true
+          delay = "90s"
         }
 
         constraint {
