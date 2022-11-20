@@ -84,7 +84,7 @@ ${''
               perms = "755"
               data = <<EOD
 ${''
-  #! /run/current-system/sw/bin/bash -e
+  #! /run/current-system/sw/bin/bash
 
   IFACE="${id}"
 
