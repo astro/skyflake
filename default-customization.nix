@@ -45,31 +45,17 @@ in
 
     interfaces = [ {
       type = "tap";
-      id =
-        let
-          u = if builtins.stringLength user > 4
-              then builtins.substring 0 4 (
-                builtins.hashString "sha256" user
-              ) else user;
-          r = if builtins.stringLength repo > 4
-              then builtins.substring 0 4 (
-                builtins.hashString "sha256" repo
-              ) else repo;
-          n = builtins.hashString "sha256" vmName;
-        in
-          builtins.substring 0 15 "${u}-${r}-${n}";
-
+      # Linux interface names cannot be longer than 15 bytes.
+      # Note that this scheme can lead to clashes between
+      # identical vmNames in separate user/repo.
+      id = builtins.substring 0 15 "${user}-${vmName}";
       mac = generateMacAddress "${user}-${repo}-${vmName}";
     } ];
   };
 
+  # Simply attach to main bridge
   config.skyflake.deploy.startTapScript = ''
-    set -x
-    ip link set dev "$IFACE" master vmbr0
-    _UID=$(id -u "${user}")
-    ip link set dev "$IFACE" group $_UID
-    # assign vlan equal to user uid
-    bridge vlan add dev "$IFACE" vid $_UID pvid untagged
+    ip link set dev "$IFACE" master br0
   '';
 
   config.fileSystems."/".fsType = lib.mkForce "ext4";
