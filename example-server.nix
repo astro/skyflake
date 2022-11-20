@@ -131,6 +131,7 @@
 
     users = {
       test = {
+        uid = 1000;
         sshKeys = [
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGJJTSJdpDh82486uPiMhhyhnci4tScp5uUe7156MBC8 astro"
         ];
