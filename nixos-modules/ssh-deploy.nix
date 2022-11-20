@@ -247,18 +247,5 @@ in {
     ] ++ map (userName:
       "d ${config.skyflake.deploy.sharedGcrootsPath}/${userName} 0750 ${userName} root - -"
     ) (builtins.attrNames config.skyflake.users);
-
-    # GC
-    systemd.services.nix-gc-shared-overlay = {
-      description = "Nix Garbage Collector";
-      serviceConfig.ExecStart = "${config.nix.package.out}/bin/nix-store --gc --store file://${cfg.sharedStorePath}";
-      startAt = gcCfg.dates;
-    };
-    systemd.timers.nix-gc-shared-overlay = {
-      timerConfig = {
-        RandomizedDelaySec = gcCfg.randomizedDelaySec;
-        Persistent = gcCfg.persistent;
-      };
-    };
   };
 }
