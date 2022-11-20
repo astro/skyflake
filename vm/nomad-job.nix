@@ -13,7 +13,8 @@ let
   workDir = "/run/microvms/${user}/${repo}/${vmName}";
 
   jobFile = pkgs.writeText "${user}-${repo}-${vmName}.job" ''
-    job "${user}-${repo}-${vmName}" {
+    job "${vmName}" {
+      namespace = "${user}-${repo}"
       datacenters = [${lib.concatMapStringsSep ", " (datacenter:
         "\"${datacenter}\""
       ) datacenters}]

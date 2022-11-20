@@ -90,6 +90,7 @@ let
       fi
 
       echo "Skyflake is launching machines:" >&2
+      nomad namespace apply "$USER-$REPO"
       for NAME in * ; do
         SYSTEM=$(readlink $NAME)
         echo $SYSTEM >&2
