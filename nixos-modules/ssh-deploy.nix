@@ -102,11 +102,12 @@ let
       fi
 
       echo "Skyflake is launching machines:" >&2
-      nomad namespace apply "$USER-$REPO"
+      nomad namespace apply "$USER-$REPO" >/dev/null
+
       for NAME in * ; do
         SYSTEM=$(readlink $NAME)
         echo $SYSTEM >&2
-        nomad run -detach "$SYSTEM" >/dev/null
+        nomad run -detach "$SYSTEM" >&2
 
         # Register gcroot
         mkdir -p "${cfg.sharedGcrootsPath}/$USER/$REPO"
