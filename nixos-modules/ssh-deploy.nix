@@ -42,6 +42,12 @@ let
       exit 1
     fi
 
+    if [[ "\$REV" =~ ^0+\$ ]]; then
+      # Deleting branch, stop microvm
+      nomad job stop -namespace "$USER-$REPO" "\$NAME"
+      exit 0
+    fi
+
     # the branch doesn't exist yet but is required by a git+file:///
     # flakeref. instead, we're archiving into a blank directory and add that
     # to the /nix/store so it can be used as a flakeref.
