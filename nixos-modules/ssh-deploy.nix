@@ -122,7 +122,7 @@ let
       NAMESPACES=$(nomad namespace list -t "{{ range . }}{{ .Name }}
     {{ end }}"|grep -e "^$USER-")
       for NAMESPACE in $NAMESPACES ; do
-        nomad job status -namespace "$USER-$REPO"
+        nomad job status -namespace "$NAMESPACE"
       done
 
     else
