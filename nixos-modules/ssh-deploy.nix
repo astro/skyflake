@@ -3,8 +3,13 @@
 { config, lib, pkgs, ... }:
 
 let
+  debugShell = lib.optionalString config.skyflake.debug ''
+    set -x
+  '';
+
   deployCommand = with pkgs; writeScript "skyflake-ssh-deploy" ''
     #! ${runtimeShell} -e
+    ${debugShell}
 
     PATH=${lib.makeBinPath ([
       git
@@ -26,6 +31,7 @@ let
 
       cat > hooks/update <<END_OF_HOOK
     #! ${runtimeShell} -e
+    ${debugShell}
 
     PATH=${lib.makeBinPath ([
       git nix
@@ -220,6 +226,14 @@ in {
       description = ''
         A fixed UID for MicroVM files makes sense for the whole cluster.
       '';
+    };
+
+    debug = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+          Enable debug output. Do not use in production!
+        '';
     };
   };
 
