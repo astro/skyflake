@@ -5,7 +5,7 @@
     users = mkOption {
       description = "Skyflake tenants";
       default = {};
-      type = types.attrsOf (types.submodule {
+      type = types.attrsOf (types.submodule ({ name, ... }: {
         options = {
           uid = mkOption {
             type = types.int;
@@ -13,12 +13,21 @@
               Users should have a distinct static user id across cluster nodes.
             '';
           };
+
+          home = mkOption {
+            type = types.str;
+            description = ''
+              User home directory
+            '';
+            default = "${(builtins.head config.skyflake.storage.glusterfs.fileSystems).mountPoint}/home/${name}";
+          };
+
           sshKeys = mkOption {
             default = [];
             type = with types; listOf str;
           };
         };
-      });
+      }));
     };
   };
 
@@ -29,8 +38,9 @@
       # # allow access to zvol
       # extraGroups = [ "disk" ];
     };
-  } // builtins.mapAttrs (_: { uid, ... }: {
-    inherit uid;
+  } // builtins.mapAttrs (_: { uid, home, ... }: {
+    inherit uid home;
     isNormalUser = true;
+    createHome = true;
   }) config.skyflake.users;
 }
