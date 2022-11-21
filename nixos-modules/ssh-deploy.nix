@@ -118,7 +118,11 @@ let
       echo All done >&2
 
     elif [[ "$SSH_ORIGINAL_COMMAND" = status ]]; then
-      nomad job status -namespace "$USER-$REPO"
+      NAMESPACES=$(nomad namespace list -t "{{ range . }}{{ .Name }}
+    {{ end }}"|grep -e "^$USER-")
+      for NAMESPACE in $NAMESPACES ; do
+        nomad job status -namespace "$USER-$REPO"
+      done
 
     else
       echo "Invalid SSH command: $SSH_ORIGINAL_COMMAND" >&2
