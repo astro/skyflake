@@ -111,7 +111,7 @@ let
       rm -r $SYSTEMS
       echo All done >&2
 
-    elsif [[ "$SSH_ORIGINAL_COMMAND" = status ]]; then
+    elif [[ "$SSH_ORIGINAL_COMMAND" = status ]]; then
       nomad job status -namespace "$USER-$REPO"
 
     else
