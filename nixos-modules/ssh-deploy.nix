@@ -110,6 +110,10 @@ let
       cd -
       rm -r $SYSTEMS
       echo All done >&2
+
+    elsif [[ "$SSH_ORIGINAL_COMMAND" = status ]]; then
+      nomad job status -namespace "$USER-$REPO"
+
     else
       echo "Invalid SSH command: $SSH_ORIGINAL_COMMAND" >&2
       exit 1
