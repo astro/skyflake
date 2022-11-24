@@ -118,6 +118,10 @@ let
       rm -r $SYSTEMS
       echo All done >&2
 
+    elif [[ "$SSH_ORIGINAL_COMMAND" =~ ^git-upload-pack\ \'([\\-_a-zA-Z0-9]+)\'$ ]]; then
+      REPO="''${BASH_REMATCH[1]}"
+      exec git-upload-pack "$REPO"
+
     elif [[ "$SSH_ORIGINAL_COMMAND" = status ]]; then
       NAMESPACES=$(nomad namespace list -t "{{ range . }}{{ .Name }}
     {{ end }}"|grep -e "^$USER-")
