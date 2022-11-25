@@ -20,6 +20,31 @@
       '';
     };
 
+    nomadJob.affinities = mkOption {
+      default = [];
+      type = with types; listOf (submodule ({
+        options = {
+          attribute = mkOption {
+            type = str;
+          };
+          operator = mkOption {
+            type = enum [
+              "=" "!=" ">" ">=" "<" "<="
+              "regexp" "version"
+              "set_contains_all" "set_contains_any"
+            ];
+            default = "=";
+          };
+          value = mkOption {
+            type = str;
+          };
+          weight = mkOption {
+            type = ints.between (-100) 100;
+            default = 50;
+          };
+        };
+      }));
+    };
     nomadJob.constraints = mkOption {
       default = [];
       type = with types; listOf (submodule ({
@@ -36,6 +61,7 @@
               "version" "semver"
               "is_set" "is_not_set"
             ];
+            default = "=";
           };
           value = mkOption {
             type = str;

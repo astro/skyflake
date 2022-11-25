@@ -55,6 +55,14 @@ let
             value = "${toString value}"
           }
         '') constraints}
+        ${lib.concatMapStrings ({ attribute, operator, value, weight }: ''
+          affinity {
+            attribute = "${attribute}"
+            operator = "${operator}"
+            value = "${toString value}"
+            weight = ${toString weight}
+          }
+        '') config.skyflake.nomadJob.affinities}
 
         ${lib.concatMapStrings (interface@{ id, ... }: ''
           task "add-interface-${id}" {

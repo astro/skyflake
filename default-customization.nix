@@ -64,6 +64,10 @@ in
     operator = "=";
     value = "yes";
   } ];
+  config.skyflake.nomadJob.affinities = [ {
+    attribute = "\${meta.example-deployment}";
+    value = "yes";
+  } ];
 
   config.fileSystems."/".fsType = lib.mkForce "ext4";
 }
