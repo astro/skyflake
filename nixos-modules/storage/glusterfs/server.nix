@@ -65,6 +65,7 @@ in
                 )} ${lib.concatMapStringsSep " " (server:
                   "${server}:${source}"
                 ) servers}
+                gluster volume set ${name} network.ping-timeout ${toString cfg.pingTimeout}
                 gluster volume start ${name}
               fi
             fi

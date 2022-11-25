@@ -57,6 +57,14 @@
         Configure glusterd to listen on IPv6 [::] by default.
       '';
     };
+
+    pingTimeout = mkOption {
+      type = types.int;
+      default = 10;
+      description = ''
+        Sets gluster volume network.ping-timeout on creation
+      '';
+    };
   };
 
   config = {
