@@ -60,7 +60,9 @@ in
               mkdir -p ${source}
               # Now that peer servers are connected, check for volume presence again.
               if ! gluster volume get ${name} all >/dev/null ; then
-                gluster volume create ${name} ${lib.concatMapStringsSep " " (server:
+                gluster volume create ${name} replica ${toString (
+                  builtins.length servers
+                )} ${lib.concatMapStringsSep " " (server:
                   "${server}:${source}"
                 ) servers}
                 gluster volume start ${name}
