@@ -3,6 +3,7 @@
 
   inputs = {
     microvm.url = "github:astro/microvm.nix";
+    microvm.inputs.nixpkgs.follows = "nixpkgs";
   };
   
   outputs = { self, nixpkgs, microvm }:
