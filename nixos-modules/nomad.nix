@@ -32,6 +32,11 @@ in
         Should the nomad-agent run in client mode to run tasks?
       '';
     };
+
+    client.meta = mkOption {
+      type = with types; attrsOf str;
+      default = {};
+    };
   };
 
   config = {
@@ -57,6 +62,7 @@ in
         };
         client = {
           enabled = cfg.client.enable;
+          inherit (cfg.client) meta;
           inherit (server) server_join;
         };
       };

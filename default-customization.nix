@@ -58,5 +58,12 @@ in
     ip link set dev "$IFACE" master br0
   '';
 
+  # Constraint example
+  config.skyflake.nomadJob.constraints = [ {
+    attribute = "\${meta.example-deployment}";
+    operator = "=";
+    value = "yes";
+  } ];
+
   config.fileSystems."/".fsType = lib.mkForce "ext4";
 }

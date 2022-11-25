@@ -19,40 +19,26 @@ let
   original = flake.nixosConfigurations.${vmName};
 
   extended =
-    # Safety check
+    # Safety checks
     if original.config ? microvm
     then throw ''
       VM config must not already contain microvm configuration! Use options from the customizationModule instead.
 
       Value: ${pkgs.lib.generators.toPretty {} original.config.microvm}
     ''
+    else if original.config ? skyflake
+    then throw ''
+      VM config must not already contain skyflake configuration! Use options from the customizationModule instead.
+
+      Value: ${pkgs.lib.generators.toPretty {} original.config.skyflake}
+    ''
     else
       # Customizations to the imported NixOS system
       original.extendModules {
         modules = [
           microvm.nixosModules.microvm
+          ./customization-options.nix
           {
-            options.skyflake = with lib; {
-              deploy.startTapScript = lib.mkOption {
-                type = types.lines;
-                default = "";
-                description = ''
-                  Commands to run for a TAP interface of MicroVM to be started.
-
-                  Part of the nomad job. Do not rely on store paths here.
-                '';
-              };
-              deploy.stopTapScript = lib.mkOption {
-                type = types.lines;
-                default = "";
-                description = ''
-                  Commands to run for a TAP interface after a MicroVM is shut down.
-
-                  Part of the nomad job. Do not rely on store paths here.
-                '';
-              };
-            };
-
             config = {
               microvm = {
                 # Overrride with custom-built squashfs

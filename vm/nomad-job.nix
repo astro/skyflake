@@ -12,6 +12,20 @@ let
 
   workDir = "/run/microvms/${user}/${repo}/${vmName}";
 
+  constraints = [ {
+    attribute = "\${attr.kernel.name}";
+    operator = "=";
+    value = pkgs.lib.toLower config.nixpkgs.localSystem.uname.system;
+  } {
+    attribute = "\${attr.kernel.arch}";
+    operator = "=";
+    value = config.nixpkgs.localSystem.uname.processor;
+  } {
+    attribute = "\${attr.cpu.numcores}";
+    operator = ">=";
+    value = config.microvm.vcpu;
+  } ] ++ config.skyflake.nomadJob.constraints;
+
   jobFile = pkgs.writeText "${user}-${repo}-${vmName}.job" ''
     job "${vmName}" {
       namespace = "${user}-${repo}"
@@ -34,11 +48,13 @@ let
           delay = "90s"
         }
 
-        constraint {
-          attribute = "''${attr.cpu.numcores}"
-          operator = ">="
-          value = "${toString config.microvm.vcpu}"
-        }
+        ${lib.concatMapStrings ({ attribute, operator, value }: ''
+          constraint {
+            attribute = "${attribute}"
+            operator = "${operator}"
+            value = "${toString value}"
+          }
+        '') constraints}
 
         ${lib.concatMapStrings (interface@{ id, ... }: ''
           task "add-interface-${id}" {

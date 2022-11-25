@@ -93,6 +93,9 @@
 
     nomad = {
       servers = [ "example1" "example2" "example3" ];
+      client.meta = {
+        example-deployment = "yes";
+      };
     };
 
     users = {
