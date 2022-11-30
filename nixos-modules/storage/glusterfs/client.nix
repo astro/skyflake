@@ -11,6 +11,8 @@ let
       then "[${addr}]"
       else addr;
 
+  localFirst = builtins.sort (a: b: a == config.networking.hostName);
+
 in
 {
   environment.systemPackages = [ pkgs.glusterfs ];
@@ -18,8 +20,9 @@ in
   fileSystems = builtins.listToAttrs (
     map ({ mountPoint, name, servers, ... }:
       let
-        firstServer = builtins.head servers;
-        otherServers = builtins.tail servers;
+        servers' = localFirst servers;
+        firstServer = builtins.head servers';
+        otherServers = builtins.tail servers';
       in {
         name = mountPoint;
         value = {
