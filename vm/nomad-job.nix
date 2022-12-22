@@ -148,7 +148,9 @@ ${''
     --socket-path=${socket} \
     --socket-group=kvm \
     --shared-dir=${source} \
-    --sandbox=none
+    --sandbox=none \
+    --thread-pool-size `nproc` \
+    --cache=never
 ''}EOD
               }
               kill_timeout = "5s"
