@@ -148,11 +148,7 @@ ${''
     --socket-path=${socket} \
     --socket-group=kvm \
     --shared-dir=${source} \
-    --sandbox=none \
-    --xattr --posix-acl \
-    --inode-file-handles=prefer \
-    --thread-pool-size `nproc` \
-    --cache=never
+    --sandbox=none
 ''}EOD
               }
               kill_timeout = "5s"
