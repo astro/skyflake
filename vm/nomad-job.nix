@@ -151,6 +151,7 @@ ${''
     --sandbox=none \
     --xattr --posix-acl \
     --inode-file-handles=prefer \
+    --thread-pool-size `nproc` \
     --cache=never
 ''}EOD
               }
