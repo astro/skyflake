@@ -150,7 +150,7 @@ ${''
     --shared-dir=${source} \
     --sandbox=none \
     --thread-pool-size `nproc` \
-    --cache=never
+    --cache=always
 ''}EOD
               }
               kill_timeout = "5s"
