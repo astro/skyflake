@@ -34,6 +34,7 @@ in {
       default = lib.take 3 (builtins.attrNames config.skyflake.nodes);
     };
     osds = lib.mkOption {
+      default = [];
       type = with lib.types; listOf (submodule {
         options = {
           id = lib.mkOption {
