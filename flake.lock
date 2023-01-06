@@ -1,25 +1,5 @@
 {
   "nodes": {
-    "cache-gc": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1668716009,
-        "narHash": "sha256-BgyYo63+m0K75KgtJk4XXTjkwnWi/X3T2JHH1Bjv40s=",
-        "owner": "lheckemann",
-        "repo": "cache-gc",
-        "rev": "e2dd50400d1e0c425b4b092e3a4431556ae0cfd2",
-        "type": "github"
-      },
-      "original": {
-        "owner": "lheckemann",
-        "repo": "cache-gc",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "locked": {
         "lastModified": 1659877975,
@@ -72,7 +52,6 @@
     },
     "root": {
       "inputs": {
-        "cache-gc": "cache-gc",
         "microvm": "microvm",
         "nixpkgs": "nixpkgs"
       }

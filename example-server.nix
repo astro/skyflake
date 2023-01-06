@@ -13,8 +13,12 @@
       mountPoint = "/nix/.ro-store";
     } ];
     volumes = [ {
-      image = "example${toString instance}.img";
+      image = "example${toString instance}-persist.img";
       mountPoint = "/persist";
+      size = 20 * 1024;
+    } {
+      image = "example${toString instance}-ceph.img";
+      mountPoint = null;
       size = 20 * 1024;
     } ];
     writableStoreOverlay = "/persist/rw-store";
@@ -90,6 +94,18 @@
     );
 
     storage.glusterfs.ipv6Default = true;
+
+    storage.ceph = rec {
+      fsid = "8364da79-5e03-49ae-82ea-7d936278cb0f";
+      monKeyring = example/ceph.mon.keyring;
+      adminKeyring = example/ceph.client.admin.keyring;
+      osds = [ {
+        id = instance;
+        fsid = "8e4ae689-5c15-4381-bd75-19de743378e${toString instance}";
+        path = "/dev/vdc";
+        key = "AQBjQLhj1+JEJxAAIsVIF/Pfw3y+Ie7RlPy7/g==";
+      } ];
+    };
 
     nomad = {
       servers = [ "example1" "example2" "example3" ];

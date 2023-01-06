@@ -10,6 +10,8 @@
     let
       system = "x86_64-linux";
 
+      pkgs = nixpkgs.legacyPackages.${system};
+
     in {
 
       nixosModules = {
@@ -25,6 +27,7 @@
             ./nixos-modules/storage/glusterfs/options.nix
             ./nixos-modules/storage/glusterfs/server.nix
             ./nixos-modules/storage/glusterfs/client.nix
+            ./nixos-modules/storage/ceph/server.nix
           ];
         };
       };
@@ -58,6 +61,12 @@
           example1 = makeExample 1;
           example2 = makeExample 2;
           example3 = makeExample 3;
+
+          make-ceph = {
+            type = "app";
+            program = toString (pkgs.callPackage ./pkgs/make-ceph.nix {});
+          };
+
         };
     };
 }
