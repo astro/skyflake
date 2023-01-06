@@ -37,7 +37,7 @@ in
       mountPoint = "/nix/.ro-store";
     } ];
     volumes = [ {
-      image = "/storage/glusterfs/persist/${user}/${repo}/${vmName}";
+      image = "/storage/cephfs/persist/${user}/${repo}/${vmName}";
       mountPoint = "/";
       size = 8 * 1024;
     } ];

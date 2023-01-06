@@ -19,7 +19,7 @@
             description = ''
               User home directory
             '';
-            default = "${(builtins.head config.skyflake.storage.glusterfs.fileSystems).mountPoint}/home/${name}";
+            default = "${config.skyflake.storage.ceph.cephfs.cephfs.mountPoint}/home/${name}";
           };
 
           sshKeys = mkOption {

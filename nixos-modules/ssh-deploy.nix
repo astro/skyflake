@@ -3,6 +3,8 @@
 { config, lib, pkgs, ... }:
 
 let
+  cephfsMountPoint = config.skyflake.storage.ceph.cephfs.cephfs.mountPoint;
+
   debugShell = lib.optionalString config.skyflake.debug ''
     set -x
   '';
@@ -161,7 +163,7 @@ in {
 
       sharedStorePath = mkOption {
         type = types.str;
-        default = "${(builtins.head config.skyflake.storage.glusterfs.fileSystems).mountPoint}/store";
+        default = "${cephfsMountPoint}/store";
         description = ''
           Directory which is mounted on all nodes that will be used to
           share the /nix/store with MicroVMs.
@@ -170,7 +172,7 @@ in {
 
       sharedGcrootsPath = mkOption {
         type = types.str;
-        default = "${(builtins.head config.skyflake.storage.glusterfs.fileSystems).mountPoint}/gcroots";
+        default = "${cephfsMountPoint}/gcroots";
         description = ''
           Directory which is mounted on all nodes, is linked from
           /nix/var/nix/gcroots/, and contains links to all currently
@@ -254,7 +256,7 @@ in {
         "${lib.concatStringsSep "," sshKeyOpts} ${sshKey}"
       ) userConfig.sshKeys;
     }) config.skyflake.users // {
-      # stable uid is useful across glusterfs
+      # stable uid is useful across network filesystems
       microvm.uid = config.skyflake.microvmUid;
     };
 

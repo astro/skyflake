@@ -4,7 +4,6 @@ let
 
   cfg = config.skyflake.storage.ceph;
 
-  isFirstMon = hostName == builtins.head cfg.mons;
   isMon = builtins.elem hostName cfg.mons;
 
   isIPv6 = addr: builtins.match ".*:.*:.*" addr != null;
@@ -82,8 +81,8 @@ in {
   };
 
   config = {
-    skyflake.storage.ceph.cephfs.binary-cache = {
-      mountPoint = "/storage/binary-cache";
+    skyflake.storage.ceph.cephfs."cephfs" = {
+      mountPoint = "/storage/cephfs";
     };
 
     boot.kernelModules = [ "ceph" ];
@@ -273,12 +272,15 @@ in {
         description = "Create CephFS ${fsName}";
         requires = [ "ceph-mgr-${hostName}.service" ];
         path = with pkgs; [ ceph ];
+        # successful even on existing cephfs
         script = ''
           ceph fs volume create ${lib.escapeShellArg fsName}
         '';
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
+          Restart = "on-failure";
+          RestartSec = "3s";
         };
       };
     }) (builtins.attrNames cfg.cephfs));
