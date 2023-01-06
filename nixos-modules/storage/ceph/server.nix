@@ -63,16 +63,31 @@ in {
         };
       });
     };
-
     monKeyring = lib.mkOption {
       type = lib.types.path;
     };
     adminKeyring = lib.mkOption {
       type = lib.types.path;
     };
+    cephfs = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.submodule ({
+        options = {
+          mountPoint = lib.mkOption {
+            type = with lib.types; nullOr str;
+            default = null;
+          };
+        };
+      }));
+    };
   };
 
   config = {
+    skyflake.storage.ceph.cephfs.binary-cache = {
+      mountPoint = "/storage/binary-cache";
+    };
+
+    boot.kernelModules = [ "ceph" ];
+
     environment.systemPackages = [ pkgs.ceph ];
     environment.etc = {
       "ceph/ceph.mon.keyring".source = cfg.monKeyring;
@@ -125,7 +140,7 @@ in {
         description = "Ceph MON bootstap";
         after = [ "network.target" ];
         before = [ "ceph-mon-${hostName}.service" ];
-        wantedBy = [ "ceph-mon-${hostName}.service" ];
+        requiredBy = [ "ceph-mon-${hostName}.service" ];
 
         # TODO: more fine-grained than a `done` file?
         unitConfig.ConditionPathExists = "!/var/lib/ceph/mon/ceph-${hostName}/done";
@@ -177,7 +192,7 @@ in {
       bootstrap-ceph-mgr = lib.mkIf isMon {
         description = "Ceph MGR bootstap";
         before = [ "ceph-mgr-${hostName}.service" ];
-        wantedBy = [ "ceph-mgr-${hostName}.service" ];
+        requiredBy = [ "ceph-mgr-${hostName}.service" ];
 
         unitConfig.ConditionPathExists = "!/var/lib/ceph/mgr/ceph-${hostName}/done";
 
@@ -215,7 +230,9 @@ in {
           Group = "ceph";
         };
       };
-    } ] ++ map ({ id, fsid, path, key, deviceClass, ... }: {
+    } ]
+    ++
+    map ({ id, fsid, path, key, deviceClass, ... }: {
       "bootstrap-ceph-osd-${toString id}" = {
         description = "Ceph OSD.${toString id} bootstap";
         after = [
@@ -226,7 +243,6 @@ in {
         wantedBy = [ "ceph-osd-${toString id}.service" ];
         unitConfig.ConditionPathExists = "!/var/lib/ceph/osd/ceph-${toString id}";
 
-        # path = with pkgs; [ util-linux lvm2 ceph ];
         path = with pkgs; [ ceph ];
         script = ''
           # TODO: --block.db BLOCK_DB --block.wal BLOCK_WAL
@@ -243,13 +259,52 @@ in {
           ceph-osd -i ${toString id} --mkfs --osd-uuid ${fsid}
 
           ceph osd crush rm-device-class osd.${toString id}
-          ceph osd crush set-device-class '${deviceClass}' osd.${toString id}
+          ceph osd crush set-device-class ${lib.escapeShellArg deviceClass} osd.${toString id}
         '';
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
         };
       };
-    }) cfg.osds);
+    }) cfg.osds
+    ++
+    map (fsName: {
+      "bootstrap-cephfs-${fsName}" = {
+        description = "Create CephFS ${fsName}";
+        requires = [ "ceph-mgr-${hostName}.service" ];
+        path = with pkgs; [ ceph ];
+        script = ''
+          ceph fs volume create ${lib.escapeShellArg fsName}
+        '';
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+        };
+      };
+    }) (builtins.attrNames cfg.cephfs));
+
+    systemd.mounts = map (fsName:
+      let
+        inherit (cfg.cephfs.${fsName}) mountPoint;
+      in {
+        requires = [
+          "bootstrap-cephfs-${fsName}.service"
+          "ceph-mgr-${hostName}.service"
+        ];
+        requiredBy = [ "nomad.service" ];
+        type = "ceph";
+        what = "${escapeIPv6 config.skyflake.nodes.${hostName}.address}:/";
+        where = mountPoint;
+        options = lib.concatStringsSep "," [
+          "fs=${fsName}"
+          # use ceph.client.admin.keyring
+          "name=admin"
+        ];
+      }
+    ) (builtins.attrNames (
+      lib.filterAttrs (_: { mountPoint, ... }:
+        mountPoint != null
+      ) cfg.cephfs
+    ));
   };
 }
