@@ -19,7 +19,7 @@
             description = ''
               User home directory
             '';
-            default = "${config.skyflake.storage.ceph.cephfs.cephfs.mountPoint}/home/${name}";
+            default = "${config.skyflake.storage.ceph.cephfs.skyflake.mountPoint}/home/${name}";
           };
 
           sshKeys = mkOption {

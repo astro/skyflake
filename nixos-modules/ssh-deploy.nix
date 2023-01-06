@@ -3,7 +3,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  cephfsMountPoint = config.skyflake.storage.ceph.cephfs.cephfs.mountPoint;
+  cephfsMountPoint = config.skyflake.storage.ceph.cephfs.skyflake.mountPoint;
 
   debugShell = lib.optionalString config.skyflake.debug ''
     set -x

@@ -81,7 +81,7 @@ in {
   };
 
   config = {
-    skyflake.storage.ceph.cephfs."cephfs" = {
+    skyflake.storage.ceph.cephfs.skyflake = {
       mountPoint = "/storage/cephfs";
     };
 
