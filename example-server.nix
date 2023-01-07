@@ -103,7 +103,7 @@
         id = instance;
         fsid = "8e4ae689-5c15-4381-bd75-19de743378e${toString instance}";
         path = "/dev/vdc";
-        key = "AQBjQLhj1+JEJxAAIsVIF/Pfw3y+Ie7RlPy7/g==";
+        keyfile = toString (./example + "/osd.${toString instance}.keyring");
       } ];
     };
 

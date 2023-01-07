@@ -54,10 +54,10 @@ in {
             type = str;
             default = "ssd";
           };
-          key = lib.mkOption {
+          keyfile = lib.mkOption {
             type = str;
             description = ''
-              Base64 OSD key. Generate one with `ceph-authtool -g -C /dev/stdout`
+              Just the base64-encoded key. Generate one with `ceph-authtool -g -C /dev/stdout`
             '';
           };
         };
@@ -232,7 +232,7 @@ in {
       };
     } ]
     ++
-    map ({ id, fsid, path, key, deviceClass, ... }: {
+    map ({ id, fsid, path, keyfile, deviceClass, ... }: {
       "bootstrap-ceph-osd-${toString id}" = {
         description = "Ceph OSD.${toString id} bootstap";
         after = [
@@ -252,10 +252,10 @@ in {
           ln -sf ${path} /var/lib/ceph/osd/ceph-${toString id}/block
           ceph-authtool --create-keyring /var/lib/ceph/osd/ceph-${toString id}/keyring \
             --name osd.${toString id} \
-            --add-key ${key}
+            --add-key "$(cat ${keyfile})"
           chown -R ceph:ceph /var/lib/ceph/osd/ceph-${toString id}
 
-          echo '{"cephx_secret": "${key}"}' | ceph osd new ${fsid} ${toString id} -i -
+          echo "{\"cephx_secret\": \"$(cat ${keyfile})\"}" | ceph osd new ${fsid} ${toString id} -i -
           ceph-osd -i ${toString id} --mkfs --osd-uuid ${fsid}
 
           ceph osd crush rm-device-class osd.${toString id}
