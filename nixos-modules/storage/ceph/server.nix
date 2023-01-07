@@ -5,6 +5,8 @@ let
   cfg = config.skyflake.storage.ceph;
 
   isMon = builtins.elem hostName cfg.mons;
+  isMgr = builtins.elem hostName cfg.mgrs;
+  isMds = builtins.elem hostName cfg.mdss;
 
   isIPv6 = addr: builtins.match ".*:.*:.*" addr != null;
   escapeIPv6 = addr:
@@ -112,21 +114,21 @@ in {
         monHost = cfg.initialMonIp;
         monInitialMembers = builtins.concatStringsSep "," cfg.mons;
       };
-      mon = {
+      mon = rec {
         enable = builtins.elem hostName cfg.mons;
-        daemons = [ hostName ];
+        daemons = lib.optional enable hostName;
       };
-      mgr = {
+      mgr = rec {
         enable = builtins.elem hostName cfg.mgrs;
-        daemons = [ hostName ];
+        daemons = lib.optional enable hostName;
+      };
+      mds = rec {
+        enable = builtins.elem hostName cfg.mdss;
+        daemons = lib.optional enable hostName;
       };
       osd = {
         enable = cfg.osds != [];
         daemons = map ({ id, ... }: toString id) cfg.osds;
-      };
-      mds = {
-        enable = builtins.elem hostName cfg.mdss;
-        daemons = [ hostName ];
       };
 
       extraConfig = lib.optionalAttrs (isIPv6 config.skyflake.nodes.${hostName}.address) {
@@ -189,7 +191,7 @@ in {
         };
       };
 
-      bootstrap-ceph-mgr = lib.mkIf isMon {
+      bootstrap-ceph-mgr = lib.mkIf isMgr {
         description = "Ceph MGR bootstap";
         before = [ "ceph-mgr-${hostName}.service" ];
         requiredBy = [ "ceph-mgr-${hostName}.service" ];
@@ -211,7 +213,7 @@ in {
         };
       };
 
-      bootstrap-ceph-mds = lib.mkIf isMon {
+      bootstrap-ceph-mds = lib.mkIf isMds {
         description = "Ceph MDS bootstap";
         before = [ "ceph-mds-${hostName}.service" ];
         wantedBy = [ "ceph-mds-${hostName}.service" ];
@@ -268,29 +270,31 @@ in {
       };
     }) cfg.osds
     ++
-    map (fsName: {
-      "bootstrap-cephfs-${fsName}" = {
-        description = "Create CephFS ${fsName}";
-        requires = [ "ceph-mgr-${hostName}.service" ];
-        path = with pkgs; [ ceph ];
-        # successful even on existing cephfs
-        script = ''
-          ceph fs volume create ${lib.escapeShellArg fsName}
-        '';
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          Restart = "on-failure";
-          RestartSec = "3s";
+    lib.optionals isMon (
+      map (fsName: {
+        "bootstrap-cephfs-${fsName}" = {
+          description = "Create CephFS ${fsName}";
+          requires = [ "ceph-mgr-${hostName}.service" ];
+          path = with pkgs; [ ceph ];
+          # successful even on existing cephfs
+          script = ''
+            ceph fs volume create ${lib.escapeShellArg fsName}
+          '';
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+            Restart = "on-failure";
+            RestartSec = "3s";
+          };
         };
-      };
-    }) (builtins.attrNames cfg.cephfs));
+      }) (builtins.attrNames cfg.cephfs))
+    );
 
     systemd.mounts = map (fsName:
       let
         inherit (cfg.cephfs.${fsName}) mountPoint;
       in {
-        requires = [
+        requires = lib.optionals isMon [
           "bootstrap-cephfs-${fsName}.service"
           "ceph-mgr-${hostName}.service"
         ];
