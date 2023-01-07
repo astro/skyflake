@@ -129,7 +129,7 @@ in {
         daemons = [ hostName ];
       };
 
-      extraConfig = lib.optionalString (isIPv6 global.clusterNetwork) {
+      extraConfig = lib.optionalString (isIPv6 config.skyflake.nodes.${hostName}.address) {
         "ms bind ipv4" = "false";
         "ms bind ipv6" = "true";
       };
