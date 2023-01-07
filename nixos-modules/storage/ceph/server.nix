@@ -296,7 +296,7 @@ in {
         ];
         requiredBy = [ "nomad.service" ];
         type = "ceph";
-        what = "${escapeIPv6 config.skyflake.nodes.${hostName}.address}:/";
+        what = "${lib.concatMapStringsSep "," (mon: escapeIPv6 config.skyflake.nodes.${mon}.address) cfg.mons}:/";
         where = mountPoint;
         options = lib.concatStringsSep "," [
           "fs=${fsName}"
