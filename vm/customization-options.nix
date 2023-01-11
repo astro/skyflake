@@ -20,6 +20,46 @@
       '';
     };
 
+    deploy.rbds = mkOption {
+      default = {};
+      description = ''
+        Ceph RBDs used by this MicroVM
+      '';
+      type = with types; attrsOf (submodule ({ name, ... }: {
+        options = {
+          pool = mkOption {
+            type = str;
+          };
+          namespace = mkOption {
+            type = str;
+          };
+          name = mkOption {
+            type = str;
+          };
+          size = mkOption {
+            type = nullOr int;
+            default = null;
+          };
+          autoCreate = mkOption {
+            type = bool;
+            default = true;
+          };
+          fsType = mkOption {
+            type = str;
+            default = "ext4";
+            description = ''
+              Which mkfs to use when `autoCreate = true`
+            '';
+          };
+          path = mkOption {
+            type = str;
+            default = "rbd/${name}";
+            description = "Automatic. Don't change";
+          };
+        };
+      }));
+    };
+
     nomadJob.affinities = mkOption {
       default = [];
       type = with types; listOf (submodule ({

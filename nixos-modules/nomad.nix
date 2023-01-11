@@ -72,7 +72,7 @@ in
       # alternatives to the nomad web ui
       wander damon
       # needed for microvms
-      virtiofsd
+      virtiofsd ceph
     ];
   };
 }

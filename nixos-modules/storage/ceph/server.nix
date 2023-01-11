@@ -65,6 +65,13 @@ in {
         };
       });
     };
+    rbdPools = lib.mkOption {
+      default = {};
+      type = with lib.types; attrsOf (submodule ({ name, ... }: {
+        options = {
+        };
+      }));
+    };
     monKeyring = lib.mkOption {
       type = lib.types.path;
     };
@@ -288,6 +295,27 @@ in {
           };
         };
       }) (builtins.attrNames cfg.cephfs))
+    ++
+    lib.optionals isMon (
+      map (name: {
+        "bootstrap-rbd-pool-${name}" = {
+          description = "Create Ceph RBD pool ${name}";
+          wantedBy = [ "multi-user.target" ];
+          requires = [ "ceph-mgr-${hostName}.service" ];
+          path = with pkgs; [ ceph ];
+          # successful even on existing pool
+          script = ''
+            ceph osd pool create ${lib.escapeShellArg name} replicated
+            rbd pool init ${lib.escapeShellArg name}
+          '';
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+            Restart = "on-failure";
+            RestartSec = "3s";
+          };
+        };
+      }) (builtins.attrNames cfg.rbdPools))
     );
 
     systemd.mounts = map (fsName:

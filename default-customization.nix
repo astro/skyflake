@@ -37,9 +37,11 @@ in
       mountPoint = "/nix/.ro-store";
     } ];
     volumes = [ {
-      image = "/storage/cephfs/persist/${user}/${repo}/${vmName}";
+      image = config.skyflake.deploy.rbds.root.path;
       mountPoint = "/";
-      size = 8 * 1024;
+      # don't let microvm.nix create an image file
+      autoCreate = false;
+      size = 0;
     } ];
     writableStoreOverlay = "/nix/.rw-store";
 
@@ -51,6 +53,13 @@ in
       id = builtins.substring 0 15 "${user}-${vmName}";
       mac = generateMacAddress "${user}-${repo}-${vmName}";
     } ];
+  };
+
+  config.skyflake.deploy.rbds.root = {
+    pool = "microvms";
+    namespace = user;
+    name = "${repo}-${vmName}-root";
+    size = 512;
   };
 
   # Simply attach to main bridge

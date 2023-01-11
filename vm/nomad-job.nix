@@ -207,6 +207,63 @@ ${''
           }
         }
 
+        ${lib.concatMapStrings (id: with config.skyflake.deploy.rbds.${id}; ''
+          task "rbd-map-${id}" {
+            driver = "raw_exec"
+            lifecycle {
+              hook = "prestart"
+            }
+            config {
+              command = "local/rbd-map.sh"
+            }
+            template {
+              destination = "local/rbd-map.sh"
+              perms = "755"
+              data = <<EOD
+          #! /run/current-system/sw/bin/bash -e
+
+          PATH="$PATH:${lib.makeBinPath (with pkgs; [ kmod ceph e2fsprogs ])}"
+          SPEC="${pool}/${namespace}/${name}"
+          ${lib.optionalString autoCreate ''
+            if ! rbd info "$SPEC" >/dev/null 2>/dev/null; then
+              rbd namespace create "${pool}/${namespace}" || true
+              rbd create --size ${toString size}M "$SPEC"
+
+              TARGET=$(rbd map "$SPEC")
+              mkfs.${fsType} "$TARGET"
+              rbd unmap "$TARGET"
+            fi
+          ''}
+          TARGET=$(rbd map "$SPEC")
+          chown microvm "$TARGET"
+          cd ${workDir}
+          mkdir -p $(dirname "${path}")
+          ln -s "$TARGET" "${path}"
+          EOD
+            }
+          }
+
+          task "rbd-unmap-${id}" {
+            driver = "raw_exec"
+            lifecycle {
+              hook = "poststop"
+            }
+            config {
+              command = "local/rbd-unmap.sh"
+            }
+            template {
+              destination = "local/rbd-unmap.sh"
+              perms = "755"
+              data = <<EOD
+          #! /run/current-system/sw/bin/bash -e
+
+          cd ${workDir}
+          rbd unmap $(readlink "${path}")
+          EOD
+            }
+          }
+        '') (builtins.attrNames config.skyflake.deploy.rbds)}
+
         task "hypervisor" {
           driver = "raw_exec"
           user = "microvm"

@@ -105,6 +105,7 @@
         path = "/dev/vdc";
         keyfile = toString (./example + "/osd.${toString instance}.keyring");
       } ];
+      rbdPools.microvms = {};
     };
 
     nomad = {
