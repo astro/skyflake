@@ -52,7 +52,7 @@ let
 
     if [[ "\$REV" =~ ^0+\$ ]]; then
       # Deleting branch, stop microvm
-      nomad job stop -namespace "$USER-$REPO" "\$NAME"
+      nomad job stop -namespace "$USER-$REPO" "\$NAME" || true
       exit 0
     fi
 
