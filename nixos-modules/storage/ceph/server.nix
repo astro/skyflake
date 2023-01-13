@@ -13,6 +13,30 @@ let
     if isIPv6 addr
     then "[${addr}]"
     else addr;
+
+  poolParamsOpts = {
+    size = lib.mkOption {
+      type = with lib.types; nullOr int;
+      default = null;
+      description = "Replication target size";
+      example = 2;
+    };
+    class = lib.mkOption {
+      type = with lib.types; nullOr str;
+      default = null;
+      description = "Preferred device class";
+      example = "ssd";
+    };
+  };
+
+  setPoolParams = name: params:
+    lib.optionalString (params.size != null) ''
+      ceph osd pool set ${lib.escapeShellArg name} size ${toString params.size}
+    '' +
+    lib.optionalString (params.class != null) ''
+      ceph osd pool set ${lib.escapeShellArg name} crush_rule "replicated_${params.class}"
+    '';
+
 in {
   options.skyflake.storage.ceph = {
     fsid = lib.mkOption {
@@ -54,7 +78,7 @@ in {
           # TODO: walPath, dbPath
           deviceClass = lib.mkOption {
             type = str;
-            default = "ssd";
+            example = "ssd";
           };
           keyfile = lib.mkOption {
             type = str;
@@ -69,6 +93,7 @@ in {
       default = {};
       type = with lib.types; attrsOf (submodule ({ name, ... }: {
         options = {
+          params = poolParamsOpts;
         };
       }));
     };
@@ -85,6 +110,8 @@ in {
             type = with lib.types; nullOr str;
             default = null;
           };
+          metaParams = poolParamsOpts;
+          dataParams = poolParamsOpts;
         };
       }));
     };
@@ -269,6 +296,7 @@ in {
 
           ceph osd crush rm-device-class osd.${toString id}
           ceph osd crush set-device-class ${lib.escapeShellArg deviceClass} osd.${toString id}
+          ceph osd crush rule create-replicated "replicated_${deviceClass}" default host ${lib.escapeShellArg deviceClass}
         '';
         serviceConfig = {
           Type = "oneshot";
@@ -286,6 +314,8 @@ in {
           # successful even on existing cephfs
           script = ''
             ceph fs volume create ${lib.escapeShellArg fsName}
+            ${setPoolParams "cephfs.${fsName}.meta" cfg.cephfs.${fsName}.metaParams}
+            ${setPoolParams "cephfs.${fsName}.data" cfg.cephfs.${fsName}.dataParams}
           '';
           serviceConfig = {
             Type = "oneshot";
@@ -306,6 +336,7 @@ in {
           # successful even on existing pool
           script = ''
             ceph osd pool create ${lib.escapeShellArg name} replicated
+            ${setPoolParams name cfg.rbdPools.${name}.params}
             rbd pool init ${lib.escapeShellArg name}
           '';
           serviceConfig = {
