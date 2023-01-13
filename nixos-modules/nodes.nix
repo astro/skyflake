@@ -8,7 +8,7 @@ in
   options.skyflake.nodes = with lib; mkOption {
     description = ''
       All cluster nodes with their addresses, or at least those who
-      run coordination servers (eg. nomad servers, glusterfs server,
+      run coordination servers (eg. nomad servers, ceph server,
       ...).
     '';
     default = {};

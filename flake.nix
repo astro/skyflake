@@ -24,9 +24,6 @@
             (import ./nixos-modules/ssh-deploy.nix {
               inherit microvm nixpkgs;
             })
-            ./nixos-modules/storage/glusterfs/options.nix
-            ./nixos-modules/storage/glusterfs/server.nix
-            ./nixos-modules/storage/glusterfs/client.nix
             ./nixos-modules/storage/ceph/server.nix
           ];
         };

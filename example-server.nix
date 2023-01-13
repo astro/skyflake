@@ -93,8 +93,6 @@
       }) [ 1 2 3 ]
     );
 
-    storage.glusterfs.ipv6Default = true;
-
     storage.ceph = rec {
       fsid = "8364da79-5e03-49ae-82ea-7d936278cb0f";
       monKeyring = example/ceph.mon.keyring;
