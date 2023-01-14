@@ -130,6 +130,10 @@ in {
       "ceph/ceph.client.admin.keyring".source = cfg.adminKeyring;
     };
 
+    systemd.tmpfiles = [
+      "d /var/log/ceph 750 ceph ceph - -"
+    ];
+
     services.ceph = rec {
       enable = true;
       global = rec {
