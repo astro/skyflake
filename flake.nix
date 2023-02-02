@@ -13,6 +13,9 @@
       pkgs = nixpkgs.legacyPackages.${system};
 
     in {
+      packages.${system} = import ./pkgs/doc.nix {
+        inherit pkgs self;
+      };
 
       nixosModules = {
         default = {
