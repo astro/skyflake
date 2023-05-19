@@ -4,9 +4,10 @@
   inputs = {
     microvm.url = "github:astro/microvm.nix";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
+    nix-cache-cut.url = "github:astro/nix-cache-cut";
   };
-  
-  outputs = { self, nixpkgs, microvm }:
+
+  outputs = { self, nixpkgs, microvm, nix-cache-cut }:
     let
       system = "x86_64-linux";
 
@@ -20,6 +21,7 @@
       nixosModules = {
         default = {
           imports = [
+            ./nixos-modules/storage/ceph/server.nix
             ./nixos-modules/defaults.nix
             ./nixos-modules/nodes.nix
             ./nixos-modules/nomad.nix
@@ -27,7 +29,12 @@
             (import ./nixos-modules/ssh-deploy.nix {
               inherit microvm nixpkgs;
             })
-            ./nixos-modules/storage/ceph/server.nix
+            {
+              nixpkgs.overlays = [
+                nix-cache-cut.overlays.default
+              ];
+            }
+            ./nixos-modules/cache-cut.nix
           ];
         };
       };
