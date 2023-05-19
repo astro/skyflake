@@ -67,6 +67,7 @@ in
         };
       };
     };
+    systemd.services.nomad.serviceConfig.ExecStop = "${config.services.nomad.package}/bin/nomad node drain -enable -self";
 
     environment.systemPackages = with pkgs; [
       # alternatives to the nomad web ui
