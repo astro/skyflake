@@ -159,6 +159,11 @@ in {
       mds = rec {
         enable = builtins.elem hostName cfg.mdss;
         daemons = lib.optional enable hostName;
+        extraConfig = {
+          # "Whichever one has not currently assigned a rank will be the standby replay follower of the other:"
+          mds_standby_replay = "true";
+          mds_standby_for_rank = "0";
+        };
       };
       osd = {
         enable = cfg.osds != [];
