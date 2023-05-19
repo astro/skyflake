@@ -222,7 +222,7 @@ ${''
               data = <<EOD
           #! /run/current-system/sw/bin/bash -e
 
-          PATH="$PATH:${lib.makeBinPath (with pkgs; [ kmod ceph e2fsprogs jq ])}"
+          PATH="$PATH:/run/current-system/sw/bin"
           SPEC="${pool}/${namespace}/${name}"
 
           ${lib.optionalString autoCreate ''
@@ -263,7 +263,7 @@ ${''
               data = <<EOD
           #! /run/current-system/sw/bin/bash -e
 
-          PATH="$PATH:${lib.makeBinPath (with pkgs; [ ceph ])}"
+          PATH="$PATH:/run/current-system/sw/bin"
 
           cd ${workDir}
           rbd unmap $(readlink "${path}")

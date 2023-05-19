@@ -73,6 +73,7 @@ in
       wander damon
       # needed for microvms
       virtiofsd ceph
+      jq kmod e2fsprogs
     ];
   };
 }
