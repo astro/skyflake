@@ -40,7 +40,6 @@ in
   };
 
   config = {
-  
     services.nomad = {
       enable = true;
       package = pkgs.nomad_1_4;
@@ -67,7 +66,10 @@ in
         };
       };
     };
-    systemd.services.nomad.serviceConfig.ExecStop = "${config.services.nomad.package}/bin/nomad node drain -enable -self";
+    systemd.services.nomad = {
+      requires = [ "local-fs.target" "remote-fs.target" ];
+      serviceConfig.ExecStop = "${config.services.nomad.package}/bin/nomad node drain -enable -self";
+    };
 
     environment.systemPackages = with pkgs; [
       # alternatives to the nomad web ui
