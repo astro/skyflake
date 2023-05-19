@@ -118,10 +118,6 @@ in {
   };
 
   config = {
-    skyflake.storage.ceph.cephfs.skyflake = {
-      mountPoint = "/storage/cephfs";
-    };
-
     boot.kernelModules = [ "ceph" ];
 
     environment.systemPackages = [ pkgs.ceph ];

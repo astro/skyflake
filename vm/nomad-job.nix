@@ -178,7 +178,7 @@ ${''
   #! /run/current-system/sw/bin/bash -e
 
   if ! [ -e ${runner} ] ; then
-    /run/current-system/sw/bin/nix copy --from file://@sharedStorePath@?trusted=1 --no-check-sigs ${runner}
+    /run/current-system/sw/bin/nix copy --from file://@binaryCachePath@?trusted=1 --no-check-sigs ${runner}
   fi
 ''}EOD
           }

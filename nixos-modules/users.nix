@@ -15,11 +15,11 @@
           };
 
           home = mkOption {
-            type = types.str;
+            type = with types; nullOr str;
             description = ''
               User home directory
             '';
-            default = "${config.skyflake.storage.ceph.cephfs.skyflake.mountPoint}/home/${name}";
+            default = null;
           };
 
           sshKeys = mkOption {
@@ -39,8 +39,9 @@
       # extraGroups = [ "disk" ];
     };
   } // builtins.mapAttrs (_: { uid, home, ... }: {
-    inherit uid home;
+    inherit uid;
     isNormalUser = true;
     createHome = true;
+    home = lib.mkIf (home != null) home;
   }) config.skyflake.users;
 }

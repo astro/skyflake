@@ -3,7 +3,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  cephfsMountPoint = config.skyflake.storage.ceph.cephfs.skyflake.mountPoint;
+  inherit (config.skyflake.storage.ceph) cephfs;
 
   debugShell = lib.optionalString config.skyflake.debug ''
     set -x
@@ -68,11 +68,11 @@ let
     cd ${substituteAllFiles {
       src = ../vm;
       files = [ "." ];
-      inherit (config.skyflake.deploy) sharedStorePath customizationModule;
+      inherit (config.skyflake.deploy) binaryCachePath customizationModule;
     }}
     nix build -f build-vm.nix \
       -o "$SYSTEMS/\$NAME" \
-      --extra-substituters file://${cfg.sharedStorePath}/?trusted=1 \
+      --extra-substituters file://${cfg.binaryCachePath}/?trusted=1 \
       --arg nixpkgsRef "\"${nixpkgs}\"" \
       --arg system "\"${pkgs.system}\"" \
       --arg datacenters '${lib.generators.toPretty {} cfg.datacenters}' \
@@ -84,7 +84,7 @@ let
 
     SYSTEM=\$(readlink "$SYSTEMS/\$NAME")
     # Copy to shared store
-    sudo nix copy --to file://${cfg.sharedStorePath} --no-check-sigs "\$SYSTEM"
+    sudo nix copy --to file://${cfg.binaryCachePath} --no-check-sigs "\$SYSTEM"
     # Register gcroot
     mkdir -p "${cfg.sharedGcrootsPath}/$USER/$REPO"
     rm -f "${cfg.sharedGcrootsPath}/$USER/$REPO/\$NAME"
@@ -161,9 +161,9 @@ in {
         '';
       };
 
-      sharedStorePath = mkOption {
+      binaryCachePath = mkOption {
         type = types.str;
-        default = "${cephfsMountPoint}/store";
+        default = cephfs.skyflake-binary-cache.mountPoint;
         description = ''
           Directory which is mounted on all nodes that will be used to
           share the /nix/store with MicroVMs.
@@ -172,7 +172,7 @@ in {
 
       sharedGcrootsPath = mkOption {
         type = types.str;
-        default = "${cephfsMountPoint}/gcroots";
+        default = cephfs.skyflake-gcroots.mountPoint;
         description = ''
           Directory which is mounted on all nodes, is linked from
           /nix/var/nix/gcroots/, and contains links to all currently
@@ -249,6 +249,11 @@ in {
   };
 
   config = {
+    skyflake.storage.ceph.cephfs = {
+      skyflake-binary-cache.mountPoint = "/var/lib/skyflake/binary-cache";
+      skyflake-gcroots.mountPoint = "/nix/var/nix/gcroots/skyflake";
+    };
+
     services.openssh.enable = true;
 
     users.users = builtins.mapAttrs (_: userConfig: {
@@ -260,7 +265,7 @@ in {
       microvm.uid = config.skyflake.microvmUid;
     };
 
-    # lets the hook use $sharedStorePath
+    # lets the hook use $binaryCachePath
     nix.settings.trusted-users = builtins.attrNames config.skyflake.users;
 
     # allowing commands to copy to/from shared store
@@ -269,19 +274,36 @@ in {
       extraRules = [ {
         groups = [ "users" ];
         commands = [ {
-          command = ''/run/current-system/sw/bin/nix copy --to file\://${cfg.sharedStorePath} *'';
+          command = ''/run/current-system/sw/bin/nix copy --to file\://${cfg.binaryCachePath} *'';
           options = [ "NOPASSWD" ];
         } ];
       } ];
     };
 
-    systemd.tmpfiles.rules = [
-      # workDir for nomad jobs
-      "d /run/microvms 0700 microvm kvm - -"
-      # microvm gcroots
-      "L+ /nix/var/nix/gcroots/skyflake-microvms - - - - ${cfg.sharedGcrootsPath}"
-    ] ++ map (userName:
-      "d ${config.skyflake.deploy.sharedGcrootsPath}/${userName} 0750 ${userName} root - -"
-    ) (builtins.attrNames config.skyflake.users);
+    systemd.tmpfiles.rules =
+      [
+        # workDir for nomad jobs
+        "d /run/microvms 0700 microvm kvm - -"
+        "d ${cfg.binaryCachePath} 0777 root root - -"
+      ]
+      ++
+      map (userName:
+        "d ${config.skyflake.deploy.sharedGcrootsPath}/${userName} 0750 ${userName} root - -"
+      ) (builtins.attrNames config.skyflake.users);
+
+    systemd.services.skyflake-permissions = {
+      wantedBy = [ "multi-user.target" ];
+      after = [ "remote-fs.target" ];
+      script = ''
+        mkdir -p ${cfg.binaryCachePath}
+        chmod 0777 ${cfg.binaryCachePath}
+
+        ${lib.concatMapStrings (userName: ''
+          D="${config.skyflake.deploy.sharedGcrootsPath}/${userName}"
+          mkdir -p "$D"
+          chown "${userName}" "$D"
+        '') (builtins.attrNames config.skyflake.users)}
+      '';
+    };
   };
 }
