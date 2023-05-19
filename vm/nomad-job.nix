@@ -257,6 +257,8 @@ ${''
               data = <<EOD
           #! /run/current-system/sw/bin/bash -e
 
+          PATH="$PATH:${lib.makeBinPath (with pkgs; [ ceph ])}"
+
           cd ${workDir}
           rbd unmap $(readlink "${path}")
           EOD
