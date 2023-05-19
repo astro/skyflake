@@ -222,8 +222,9 @@ ${''
               data = <<EOD
           #! /run/current-system/sw/bin/bash -e
 
-          PATH="$PATH:${lib.makeBinPath (with pkgs; [ kmod ceph e2fsprogs ])}"
+          PATH="$PATH:${lib.makeBinPath (with pkgs; [ kmod ceph e2fsprogs jq ])}"
           SPEC="${pool}/${namespace}/${name}"
+
           ${lib.optionalString autoCreate ''
             if ! rbd info "$SPEC" >/dev/null 2>/dev/null; then
               rbd namespace create "${pool}/${namespace}" || true
@@ -234,11 +235,16 @@ ${''
               rbd unmap "$TARGET"
             fi
           ''}
-          TARGET=$(rbd map "$SPEC")
+          OLD_MAPS=$(rbd showmapped --format json | jq -r '.[] | select(.pool == "${pool}" and .namespace == "${namespace}" and .name == "${name}") | .device')
+          for OLD_TARGET in $OLD_MAPS; do
+            rbd unmap "$OLD_TARGET" || true
+          done
+          TARGET=$(rbd map --exclusive "$SPEC")
+          echo "Mapped $SPEC to $TARGET">&2
           chown microvm "$TARGET"
           cd ${workDir}
           mkdir -p $(dirname "${path}")
-          ln -s "$TARGET" "${path}"
+          ln -sf "$TARGET" "${path}"
           EOD
             }
           }
