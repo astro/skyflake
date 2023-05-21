@@ -8,6 +8,18 @@ let
   isMgr = builtins.elem hostName cfg.mgrs;
   isMds = builtins.elem hostName cfg.mdss;
 
+  mdssPerServer = builtins.ceil (
+    2.0
+    * (builtins.length (builtins.attrNames cfg.cephfs))
+    / (builtins.length cfg.mdss)
+  );
+
+  localMdss = lib.optionals isMds (
+    builtins.genList (i:
+      "${hostName}-${toString i}"
+    ) mdssPerServer
+  );
+
   isIPv6 = addr: builtins.match ".*:.*:.*" addr != null;
   escapeIPv6 = addr:
     if isIPv6 addr
@@ -149,16 +161,16 @@ in {
         monInitialMembers = builtins.concatStringsSep "," cfg.mons;
       };
       mon = rec {
-        enable = builtins.elem hostName cfg.mons;
+        enable = isMon;
         daemons = lib.optional enable hostName;
       };
       mgr = rec {
-        enable = builtins.elem hostName cfg.mgrs;
+        enable = isMgr;
         daemons = lib.optional enable hostName;
       };
       mds = rec {
-        enable = builtins.elem hostName cfg.mdss;
-        daemons = lib.optional enable hostName;
+        enable = isMds;
+        daemons = localMdss;
         extraConfig = {
           # "Whichever one has not currently assigned a rank will be the standby replay follower of the other:"
           mds_standby_replay = "true";
@@ -251,18 +263,20 @@ in {
           Group = "ceph";
         };
       };
-
-      bootstrap-ceph-mds = lib.mkIf isMds {
+    } ]
+    ++
+    map (mds: {
+      "bootstrap-ceph-mds-${mds}" = {
         description = "Ceph MDS bootstap";
-        before = [ "ceph-mds-${hostName}.service" ];
-        wantedBy = [ "ceph-mds-${hostName}.service" ];
+        before = [ "ceph-mds-${mds}.service" ];
+        wantedBy = [ "ceph-mds-${mds}.service" ];
 
-        unitConfig.ConditionPathExists = "!/var/lib/ceph/mds/ceph-${hostName}/keyring";
+        unitConfig.ConditionPathExists = "!/var/lib/ceph/mds/ceph-${mds}/keyring";
 
         path = [ pkgs.ceph ];
         script = ''
-          mkdir -p /var/lib/ceph/mds/ceph-${hostName}
-          ceph auth get-or-create mds.${hostName} mon 'profile mds' mgr 'profile mds' osd 'allow *' > /var/lib/ceph/mds/ceph-${hostName}/keyring
+          mkdir -p /var/lib/ceph/mds/ceph-${mds}
+          ceph auth get-or-create mds.${mds} mon 'profile mds' mgr 'profile mds' osd 'allow *' > /var/lib/ceph/mds/ceph-${mds}/keyring
         '';
         serviceConfig = {
           Type = "oneshot";
@@ -271,7 +285,7 @@ in {
           Group = "ceph";
         };
       };
-    } ]
+    }) localMdss
     ++
     map ({ id, fsid, path, keyfile, deviceClass, ... }: {
       "bootstrap-ceph-osd-${toString id}" = {
