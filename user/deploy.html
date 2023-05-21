@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deploying &mdash; Skyflake  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="NixOS in Flakes" href="flake.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Skyflake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Skyflake Adminstration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../host/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../host/users.html">Setting up Skyflake users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../host/deployment.html">Customizing deployment</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Skyflake for tenants</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="flake.html">NixOS in Flakes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Deploying</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Skyflake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Deploying</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/user/deploy.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deploying">
+<h1>Deploying<a class="headerlink" href="#deploying" title="Permalink to this heading">¶</a></h1>
+<p>For deployment, you don’t need to install some untrusted vendor’s
+toolchain. Instead, Skyflake leverages the standard method for
+transferring your flake repository: <strong>git push</strong></p>
+<p>You can have multiple deployment flakes that they push to via SSH.</p>
+<p>To select which <code class="docutils literal notranslate"><span class="pre">nixosConfigurations</span></code> of a flake shall be built and
+deployed on a <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code> we use git branches.</p>
+<p>Assuming that you have a Skyflake account <code class="docutils literal notranslate"><span class="pre">alice</span></code> on Skyflake host
+deploy.example.net, push the current git commit (<code class="docutils literal notranslate"><span class="pre">HEAD</span></code>) to remote
+flake <code class="docutils literal notranslate"><span class="pre">my-infra</span></code> to (re-)deploy hosts <code class="docutils literal notranslate"><span class="pre">www</span></code>, <code class="docutils literal notranslate"><span class="pre">ftp</span></code>, and <code class="docutils literal notranslate"><span class="pre">bittorrent</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git push alice@deploy.example.net:my-infra <span class="se">\</span>
+    HEAD:www HEAD:ftp HEAD:bittorrent
+</pre></div>
+</div>
+<p>The remote machine will now receive your git data, build the
+<code class="docutils literal notranslate"><span class="pre">nixosConfigurations</span></code> by specified revision. You are not disconnected
+from SSH yet; you’ll get the build output feedback, able to interrupt
+before it finishes. Once the builds have finished successfully, the
+machines are scheduled for reboot.</p>
+<p>Your local git state should now include the updated remote branches.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="flake.html" class="btn btn-neutral float-left" title="NixOS in Flakes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Astro.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
