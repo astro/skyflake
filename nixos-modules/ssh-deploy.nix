@@ -65,12 +65,7 @@ let
     rm -r "\$FLAKETMP"
 
     echo "Skyflake is cooking $REPO#\$NAME"
-    cd ${substituteAllFiles {
-      src = ../vm;
-      files = [ "." ];
-      inherit (config.skyflake.deploy) binaryCachePath customizationModule;
-    }}
-    nix build -f build-vm.nix \
+    nix build -f /etc/skyflake/vm/build-vm.nix \
       -o "$SYSTEMS/\$NAME" \
       --extra-substituters file://${cfg.binaryCachePath}/?trusted=1 \
       --arg nixpkgsRef "\"${nixpkgs}\"" \
@@ -232,6 +227,12 @@ in {
     }) config.skyflake.users // {
       # stable uid is useful across network filesystems
       microvm.uid = config.skyflake.microvmUid;
+    };
+
+    environment.etc."skyflake/vm".source = pkgs.substituteAllFiles {
+      src = ../vm;
+      files = [ "." ];
+      inherit (config.skyflake.deploy) binaryCachePath customizationModule;
     };
 
     # lets the hook use $binaryCachePath
