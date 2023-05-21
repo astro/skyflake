@@ -231,7 +231,7 @@ ${''
               rbd create --size ${toString size}M "$SPEC"
 
               TARGET=$(rbd map "$SPEC")
-              mkfs.${fsType} "$TARGET"
+              mkfs.${fsType} -L ${builtins.substring 0 16 "${user}-${vmName}"} "$TARGET"
               rbd unmap "$TARGET"
             fi
           ''}
