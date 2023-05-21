@@ -3,14 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Skyflake's documentation!
-====================================
+Skyflake Documentation
+======================
+
 
 .. toctree::
    :maxdepth: 3
-   :caption: Contents:
+   :caption: Skyflake Adminstration
 
-   intro
+   host/intro
+   host/users
+   host/nomad
+   host/ceph
+   host/network
+   host/deployment
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Skyflake for tenants
+
+   user/flake
+   user/deploy
 
 
 Indices and tables
