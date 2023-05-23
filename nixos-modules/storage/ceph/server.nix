@@ -104,11 +104,11 @@ in {
     };
     rbdPools = lib.mkOption {
       default = {};
-      type = with lib.types; attrsOf (submodule ({ name, ... }: {
+      type = with lib.types; attrsOf (submodule { name, ... }: {
         options = {
           params = poolParamsOpts;
         };
-      }));
+      });
     };
     monKeyring = lib.mkOption {
       type = lib.types.path;
@@ -117,7 +117,7 @@ in {
       type = lib.types.path;
     };
     cephfs = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule ({
+      type = lib.types.attrsOf (lib.types.submodule {
         options = {
           mountPoint = lib.mkOption {
             type = with lib.types; nullOr str;
@@ -126,7 +126,7 @@ in {
           metaParams = poolParamsOpts;
           dataParams = poolParamsOpts;
         };
-      }));
+      });
     };
   };
 
@@ -143,7 +143,7 @@ in {
       "d /var/log/ceph 750 ceph ceph - -"
     ];
 
-    services.ceph = rec {
+    services.ceph = {
       enable = true;
       global = rec {
         inherit (cfg) fsid;
@@ -169,7 +169,7 @@ in {
         enable = isMgr;
         daemons = lib.optional enable hostName;
       };
-      mds = rec {
+      mds = {
         enable = isMds;
         daemons = localMdss;
         extraConfig = {
