@@ -104,11 +104,11 @@ in {
     };
     rbdPools = lib.mkOption {
       default = {};
-      type = with lib.types; attrsOf (submodule { name, ... }: {
+      type = with lib.types; attrsOf (submodule ({ name, ... }: {
         options = {
           params = poolParamsOpts;
         };
-      });
+      }));
     };
     monKeyring = lib.mkOption {
       type = lib.types.path;
