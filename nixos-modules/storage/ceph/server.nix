@@ -51,6 +51,7 @@ let
 
 in {
   options.skyflake.storage.ceph = {
+    package = lib.mkPackageOption pkgs "ceph" { };
     fsid = lib.mkOption {
       type = lib.types.str;
       example = "ed97c230-9613-4eef-8763-c6b0c6e3d8b8";
@@ -132,7 +133,7 @@ in {
   config = {
     boot.kernelModules = [ "ceph" ];
 
-    environment.systemPackages = [ pkgs.ceph ];
+    environment.systemPackages = [ cfg.package ];
     environment.etc = {
       "ceph/ceph.mon.keyring".source = cfg.monKeyring;
       "ceph/ceph.client.admin.keyring".source = cfg.adminKeyring;
@@ -198,7 +199,7 @@ in {
         # TODO: more fine-grained than a `done` file?
         unitConfig.ConditionPathExists = "!/var/lib/ceph/mon/ceph-${hostName}/done";
 
-        path = [ pkgs.ceph ];
+        path = [ cfg.package ];
         script = ''
           cp --no-preserve=mode ${cfg.monKeyring} /tmp/ceph.mon.keyring
           ceph-authtool /tmp/ceph.mon.keyring --import-keyring ${cfg.adminKeyring}
@@ -229,7 +230,7 @@ in {
         after = [ "ceph-mon-${hostName}.service" ];
         wantedBy = [ "ceph-mon-${hostName}.service" ];
 
-        path = [ pkgs.ceph ];
+        path = [ cfg.package ];
         script = ''
           ceph mon enable-msgr2
           ceph config set mon auth_allow_insecure_global_id_reclaim false
@@ -249,7 +250,7 @@ in {
 
         unitConfig.ConditionPathExists = "!/var/lib/ceph/mgr/ceph-${hostName}/done";
 
-        path = [ pkgs.ceph ];
+        path = [ cfg.package ];
         script = ''
           mkdir -p /var/lib/ceph/mgr/ceph-${hostName}
           ceph auth get-or-create mgr.${hostName} mon 'allow profile mgr' osd 'allow *' mds 'allow *' > /var/lib/ceph/mgr/ceph-${hostName}/keyring
@@ -273,7 +274,7 @@ in {
 
         unitConfig.ConditionPathExists = "!/var/lib/ceph/mds/ceph-${mds}/keyring";
 
-        path = [ pkgs.ceph ];
+        path = [ cfg.package ];
         script = ''
           mkdir -p /var/lib/ceph/mds/ceph-${mds}
           ceph auth get-or-create mds.${mds} mon 'profile mds' mgr 'profile mds' osd 'allow *' > /var/lib/ceph/mds/ceph-${mds}/keyring
@@ -298,7 +299,7 @@ in {
         wantedBy = [ "ceph-osd-${toString id}.service" ];
         unitConfig.ConditionPathExists = "!/var/lib/ceph/osd/ceph-${toString id}";
 
-        path = with pkgs; [ ceph ];
+        path = [ cfg.package ];
         script = ''
           # TODO: --block.db BLOCK_DB --block.wal BLOCK_WAL
 
@@ -329,7 +330,7 @@ in {
         "bootstrap-cephfs-${fsName}" = {
           description = "Create CephFS ${fsName}";
           requires = [ "ceph-mgr-${hostName}.service" ];
-          path = with pkgs; [ ceph ];
+          path = [ cfg.package ];
           # successful even on existing cephfs
           script = ''
             ceph fs volume create ${lib.escapeShellArg fsName}
@@ -351,7 +352,7 @@ in {
           description = "Create Ceph RBD pool ${name}";
           wantedBy = [ "multi-user.target" ];
           requires = [ "ceph-mgr-${hostName}.service" ];
-          path = with pkgs; [ ceph ];
+          path = [ cfg.package ];
           # successful even on existing pool
           script = ''
             ceph osd pool create ${lib.escapeShellArg name} replicated
