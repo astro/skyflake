@@ -40,12 +40,6 @@ let
           ./customization-options.nix
           {
             config = {
-              microvm = {
-                # Overrride with custom-built squashfs
-                bootDisk = bootDisk;
-                # Prepend (override) regInfo with our custom-built
-                kernelParams = pkgs.lib.mkBefore [ "regInfo=${bootDisk.regInfo}" ];
-              };
               system.build.skyflake-deployment = {
                 inherit pkgs system datacenters user repo flakeRef vmName;
               };
@@ -58,14 +52,8 @@ let
 
   inherit (extended.config.boot.kernelPackages) kernel;
 
-  # Build the squashfs ourselves
-  bootDisk = microvm.lib.buildErofs {
-    inherit pkgs;
-    inherit (extended) config;
-  };
-
   runner = microvm.lib.buildRunner {
-    inherit pkgs kernel bootDisk;
+    inherit pkgs kernel;
     microvmConfig = {
       hostName = vmName;
     } // extended.config.microvm;
