@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -27,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> Skyflake
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Skyflake
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -62,8 +67,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Deploying</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Deploying</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/user/deploy.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -84,8 +89,8 @@ deployed on a <code class="docutils literal notranslate"><span class="pre">git</
 <p>Assuming that you have a Skyflake account <code class="docutils literal notranslate"><span class="pre">alice</span></code> on Skyflake host
 deploy.example.net, push the current git commit (<code class="docutils literal notranslate"><span class="pre">HEAD</span></code>) to remote
 flake <code class="docutils literal notranslate"><span class="pre">my-infra</span></code> to (re-)deploy hosts <code class="docutils literal notranslate"><span class="pre">www</span></code>, <code class="docutils literal notranslate"><span class="pre">ftp</span></code>, and <code class="docutils literal notranslate"><span class="pre">bittorrent</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git push alice@deploy.example.net:my-infra <span class="se">\</span>
-    HEAD:www HEAD:ftp HEAD:bittorrent
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>push<span class="w"> </span>alice@deploy.example.net:my-infra<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>HEAD:www<span class="w"> </span>HEAD:ftp<span class="w"> </span>HEAD:bittorrent
 </pre></div>
 </div>
 <p>The remote machine will now receive your git data, build the
