@@ -48,6 +48,7 @@ in
     serviceConfig = {
       Restart = "on-failure";
       RestartSec = 10;
+      RemainAfterExit = true;
     };
   };
 }
