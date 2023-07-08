@@ -56,10 +56,6 @@ in {
       type = lib.types.str;
       example = "ed97c230-9613-4eef-8763-c6b0c6e3d8b8";
     };
-    initialMonIp = lib.mkOption {
-      type = lib.types.str;
-      default = builtins.head cfg.mons;
-    };
     mons = lib.mkOption {
       type = with lib.types; listOf str;
       default = lib.take 3 (builtins.attrNames config.skyflake.nodes);
@@ -158,7 +154,7 @@ in {
           ) (builtins.attrValues config.systemd.network.networks)
         );
 
-        monHost = cfg.initialMonIp;
+        monHost = builtins.concatStringsSep "," cfg.mons;
         monInitialMembers = builtins.concatStringsSep "," cfg.mons;
       };
       mon = rec {
@@ -203,8 +199,6 @@ in {
         script = ''
           cp --no-preserve=mode ${cfg.monKeyring} /tmp/ceph.mon.keyring
           ceph-authtool /tmp/ceph.mon.keyring --import-keyring ${cfg.adminKeyring}
-          #monmaptool --create --add ${hostName} v2:${cfg.initialMonIp}:3300/0 --fsid ${cfg.fsid} /tmp/monmap
-          #monmaptool --create --add ${hostName} ${cfg.initialMonIp} --fsid ${cfg.fsid} /tmp/monmap
           monmaptool --create \
             ${lib.concatMapStringsSep " " (monHost:
               "--add ${monHost} ${escapeIPv6 config.skyflake.nodes.${monHost}.address}"
