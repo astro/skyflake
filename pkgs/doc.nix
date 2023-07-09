@@ -3,7 +3,7 @@
 let
   version =
     if self.sourceInfo ? revCount
-    then with self.sourceInfo; "${revCount}-${shortRev}"
+    then with self.sourceInfo; "${toString revCount}-${shortRev}"
     else "dirty";
   inherit (self.sourceInfo) lastModified;
 in
