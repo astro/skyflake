@@ -50,12 +50,11 @@ let
         ];
       };
 
-  inherit (extended.config.boot.kernelPackages) kernel;
-
   runner = microvm.lib.buildRunner {
-    inherit pkgs kernel;
+    inherit pkgs;
     microvmConfig = {
       hostName = vmName;
+      inherit (extended.config.boot.kernelPackages) kernel;
     } // extended.config.microvm;
     inherit (extended.config.system.build) toplevel;
   };
