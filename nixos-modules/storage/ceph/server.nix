@@ -317,6 +317,11 @@ in {
           RemainAfterExit = true;
         };
       };
+      "ceph-osd-${toString id}".serviceConfig = {
+        # Hack to allow access to block devices
+        User = lib.mkForce "root";
+        ProtectSystem = lib.mkForce false;
+      };
     }) cfg.osds
     ++
     lib.optionals isMon (
