@@ -378,13 +378,8 @@ in {
         ];
         requiredBy = [ "nomad.service" ];
         type = "ceph";
-        what = "${lib.concatMapStringsSep "," (mon: escapeIPv6 config.skyflake.nodes.${mon}.address) cfg.mons}:/";
-        where = mountPoint;
-        options = lib.concatStringsSep "," [
-          "fs=${fsName}"
-          # use ceph.client.admin.keyring
-          "name=admin"
-        ];
+        what = "admin@${cfg.fsid}.${fsName}=/";
+        where = mountPoint;        
       }
     ) (builtins.attrNames (
       lib.filterAttrs (_: { mountPoint, ... }:
