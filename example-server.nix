@@ -1,10 +1,10 @@
 { instance }:
 
-{ config, lib, pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   microvm = {
-    vcpu = 2;
+    vcpu = 4;
     mem = 4096;
 
     shares = [ {
@@ -34,7 +34,7 @@
   networking.hostName = "example${toString instance}";
   users.users.root.password = "";
 
-  # TODO:
+  # TODO:? Shoulld firewall be fixed?
   networking.firewall.enable = false;
 
   networking.useDHCP = false;
@@ -64,7 +64,9 @@
           IPv6AcceptRA = true;
         };
         addresses = [ {
-          addressConfig.Address = "fec0::${toString instance}/64";
+          # TODO: addressConfig needs to be removed.
+          # trace: warning: Using 'addressConfig' is deprecated! Move all attributes inside one level up and remove it.
+          addressConfig.Address = "fec0::${toString instance}/64"; # 
         } ];
       };
     };
@@ -78,22 +80,29 @@
       }) [ 1 2 3 ]
     );
 
-    storage.ceph = rec {
-      fsid = "8364da79-5e03-49ae-82ea-7d936278cb0f";
-      monKeyring = example/ceph.mon.keyring;
-      adminKeyring = example/ceph.client.admin.keyring;
-      osds = [ {
-        id = instance;
-        fsid = "8e4ae689-5c15-4381-bd75-19de743378e${toString instance}";
-        path = "/dev/vdb";
-        deviceClass = "ssd";
-        keyfile = toString (./example + "/osd.${toString instance}.keyring");
-      } ];
-      rbdPools.microvms = {
-        params = { size = 2; class = "ssd"; };
+
+    storage.seaweedfs = {
+      enable = true;
+      filer.db.etcd = {  
+        enable = true;
       };
-      cephfs.skyflake.metaParams = { size = 2; class = "ssd"; };
     };
+    #storage.ceph = {
+    #  fsid = "8364da79-5e03-49ae-82ea-7d936278cb0f";
+    #  monKeyring = example/ceph.mon.keyring;
+    #  adminKeyring = example/ceph.client.admin.keyring;
+    #  osds = [ {
+    #    id = instance;
+    #    fsid = "8e4ae689-5c15-4381-bd75-19de743378e${toString instance}";
+    #    path = "/dev/vdb";
+    #    deviceClass = "ssd";
+    #    keyfile = toString (./example + "/osd.${toString instance}.keyring");
+    #  } ];
+    #  rbdPools.microvms = {
+    #    params = { size = 2; class = "ssd"; };
+    #  };
+    #  cephfs.skyflake.metaParams = { size = 2; class = "ssd"; };
+    #};
 
     nomad = {
       servers = [ "example1" "example2" "example3" ];
@@ -107,6 +116,7 @@
         uid = 1000;
         sshKeys = [
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGJJTSJdpDh82486uPiMhhyhnci4tScp5uUe7156MBC8 astro"
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPRRdToCDUupkkwI+crB3fGDwdBIFkDsBHjOImn+qsjg openpgp:0xE8D3D833"
         ];
       };
     };

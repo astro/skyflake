@@ -11,7 +11,6 @@
 let
   nixpkgs = builtins.getFlake nixpkgsRef;
   pkgs = nixpkgs.legacyPackages.${system};
-  inherit (pkgs) lib;
   microvm = builtins.getFlake microvmFlake;
   flake = builtins.getFlake flakeRef;
 
@@ -46,7 +45,6 @@ let
             };
           }
           # From the host's skyflake.deploy.customizationModule
-          @customizationModule@
         ];
       };
 

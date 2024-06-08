@@ -42,7 +42,7 @@ in
   config = {
     services.nomad = {
       enable = true;
-      package = pkgs.nomad_1_4;
+      package = pkgs.nomad_1_6; # nomad 1.6 is the newest version under an foss license.
       dropPrivileges = false;
       enableDocker = false;
 
@@ -75,7 +75,7 @@ in
       # alternatives to the nomad web ui
       wander damon
       # needed for microvms
-      virtiofsd ceph
+      virtiofsd ceph seaweedfs
       jq kmod e2fsprogs
     ];
   };

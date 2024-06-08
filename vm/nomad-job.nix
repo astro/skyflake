@@ -64,7 +64,7 @@ let
           }
         '') config.skyflake.nomadJob.affinities}
 
-        ${lib.concatMapStrings (interface@{ id, ... }: ''
+        ${lib.concatMapStrings ({ id, ... }: ''
           task "add-interface-${id}" {
             lifecycle {
               hook = "prestart"
@@ -120,7 +120,7 @@ ${''
           }
         '') config.microvm.interfaces}
 
-        ${lib.concatMapStrings (share@{ tag, source, socket, proto, ... }:
+        ${lib.concatMapStrings ({ tag, source, socket, proto, ... }:
           lib.optionalString (proto == "virtiofs") ''
             task "virtiofsd-${tag}" {
               lifecycle {

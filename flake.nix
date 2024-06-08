@@ -2,8 +2,12 @@
   description = "Hyperconverged Infratructure for NixOS";
 
   inputs = {
-    microvm.url = "github:astro/microvm.nix";
-    microvm.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    microvm = {
+      url = "github:astro/microvm.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-cache-cut.url = "github:astro/nix-cache-cut";
   };
 
@@ -14,6 +18,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
 
     in {
+      formatter.${system} = pkgs.alejandra;
       packages.${system} = import ./pkgs/doc.nix {
         inherit pkgs self;
       };
@@ -21,7 +26,10 @@
       nixosModules = {
         default = {
           imports = [
-            ./nixos-modules/storage/ceph/server.nix
+            ./nixos-modules/storage/seaweedfs/options.nix
+            # ./nixos-modules/storage/seaweedfs/dbBackend/sqlite.nix
+            ./nixos-modules/storage/seaweedfs/dbBackend/etcd.nix
+            # ./nixos-modules/storage/ceph/server.nix
             ./nixos-modules/defaults.nix
             ./nixos-modules/nodes.nix
             ./nixos-modules/nomad.nix
@@ -71,7 +79,7 @@
 
           make-ceph = {
             type = "app";
-            program = toString (pkgs.callPackage ./pkgs/make-ceph.nix {});
+            #program = toString (pkgs.callPackage ./pkgs/make-ceph.nix {});
           };
 
         };

@@ -20,6 +20,7 @@
       '';
     };
 
+    # TODO: rename it to something that allows more than ceph.
     deploy.rbds = mkOption {
       default = {};
       description = ''

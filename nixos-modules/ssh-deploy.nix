@@ -3,7 +3,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  inherit (config.skyflake.storage.ceph) cephfs;
+  inherit (config.skyflake.storage.seaweedfs) seaweedfsMount;
 
   debugShell = lib.optionalString config.skyflake.debug ''
     set -x
@@ -143,8 +143,6 @@ let
   ];
 
   cfg = config.skyflake.deploy;
-  gcCfg = config.skyflake.gc;
-
 in {
   options.skyflake = with lib; {
     deploy = {
@@ -158,7 +156,7 @@ in {
 
       binaryCachePath = mkOption {
         type = types.str;
-        default = cephfs.skyflake-binary-cache.mountPoint;
+        default = seaweedfsMount.skyflake-binary-cache.mountPoint;
         description = ''
           Directory which is mounted on all nodes that will be used to
           share the /nix/store with MicroVMs.
@@ -167,7 +165,7 @@ in {
 
       sharedGcrootsPath = mkOption {
         type = types.str;
-        default = cephfs.skyflake-gcroots.mountPoint;
+        default = seaweedfsMount.skyflake-gcroots.mountPoint;
         description = ''
           Directory which is mounted on all nodes, is linked from
           /nix/var/nix/gcroots/, and contains links to all currently
@@ -211,9 +209,9 @@ in {
         '';
     };
   };
-
+ 
   config = {
-    skyflake.storage.ceph.cephfs = {
+    skyflake.storage.seaweedfs.seaweedfsMount = {
       skyflake-binary-cache.mountPoint = "/var/lib/skyflake/binary-cache";
       skyflake-gcroots.mountPoint = "/nix/var/nix/gcroots/skyflake";
     };

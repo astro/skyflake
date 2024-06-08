@@ -9,7 +9,7 @@ in
     description = ''
       All cluster nodes with their addresses, or at least those who
       run coordination servers (eg. nomad servers, ceph server,
-      ...).
+       seaweedfs server ...).
     '';
     default = {};
     type = types.attrsOf (types.submodule {
