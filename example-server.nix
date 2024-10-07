@@ -7,21 +7,26 @@
     vcpu = 4;
     mem = 4096;
 
-    shares = [ {
-      tag = "ro-store";
-      source = "/nix/store";
-      mountPoint = "/nix/.ro-store";
-    } ];
-    volumes = [ {
-      image = "example${toString instance}-persist.img";
-      mountPoint = "/";
-      size = 20 * 1024;
-    } {
-      image = "example${toString instance}-ceph.img";
-      mountPoint = null;
-      size = 20 * 1024;
-    } ];
-    writableStoreOverlay = "/nix/.rw-store";
+    shares = [
+      {
+        tag = "ro-store";
+        source = "/nix/store";
+        mountPoint = "/nix/.ro-store";
+      } 
+    ];
+    volumes = [
+      {
+        image = "example${toString instance}-persist.img";
+        mountPoint = "/";
+        size = 20 * 1024;
+      }
+      # {
+      #   image = "example${toString instance}-ceph.img";
+      #   mountPoint = null;
+      #   size = 20 * 1024;
+      # }
+   ];
+   writableStoreOverlay = "/nix/.rw-store";
 
     interfaces = [ {
       id = "eth0";
@@ -66,7 +71,7 @@
         addresses = [ {
           # TODO: addressConfig needs to be removed.
           # trace: warning: Using 'addressConfig' is deprecated! Move all attributes inside one level up and remove it.
-          addressConfig.Address = "fec0::${toString instance}/64"; # 
+          Address = "fec0::${toString instance}/64"; # 
         } ];
       };
     };

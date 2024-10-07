@@ -27,6 +27,7 @@
         default = {
           imports = [
             ./nixos-modules/storage/seaweedfs/options.nix
+            ./nixos-modules/storage/seaweedfs/server.nix
             # ./nixos-modules/storage/seaweedfs/dbBackend/sqlite.nix
             ./nixos-modules/storage/seaweedfs/dbBackend/etcd.nix
             # ./nixos-modules/storage/ceph/server.nix

@@ -14,24 +14,27 @@
       wants = [ "network-online.target" ];
       #  ++ lib.optional config.networking.firewall.enable "firewall.service";
 
-      environment = /* (nixpgs.filterAttrs (n: v: v != null) */ {
+      environment = /* (nixpgs.filterAttrs (n: v: v != null) */ let
+        address = builtins.elemAt (lib.splitString "/" (lib.head config.systemd.network.networks."01-br0".addresses).Address) 0;
+      in  {
         ETCD_NAME = config.networking.hostName;
         #ETCD_DISCOVERY = "true";
         ETCD_DATA_DIR = "/var/lib/etcd";
-        ETCD_ADVERTISE_CLIENT_URLS = lib.concatMapStringsSep ", " (node: "http://[" + (config.skyflake.nodes."${node}").address + "]:2379") (lib.attrNames config.skyflake.nodes);
-        ETCD_LISTEN_CLIENT_URLS = "http://[0::]:2379";
-        ETCD_LISTEN_PEER_URLS = "http://[0::]:2380";
-        #ETCD_INITIAL_ADVERTISE_PEER_URLS = nixpgs.concatStringsSep "," config.skyflake.nodes.address;
-      #  ETCD_PEER_CLIENT_CERT_AUTH = toString config.services.etcd.peerClientCertAuth;
-      #  ETCD_PEER_TRUSTED_CA_FILE = config.services.etcd.peerTrustedCaFile;
-      #  ETCD_PEER_CERT_FILE = config.services.etcd.peerCertFile;
-      #  ETCD_PEER_KEY_FILE = config.services.etcd.peerKeyFile;
-      #  ETCD_CLIENT_CERT_AUTH = toString config.services.etcd.clientCertAuth;
-      #  ETCD_TRUSTED_CA_FILE = config.services.etcd.trustedCaFile;
-      #  ETCD_CERT_FILE = config.services.etcd.certFile;
-      #  ETCD_KEY_FILE = config.services.etcd.keyFile;
+        ETCD_ADVERTISE_CLIENT_URLS       = "https://[${address}]:2379"; # TODO Make it choose the IP of the device declaratively
+        ETCD_LISTEN_CLIENT_URLS          = "https://[${address}]:2379"; # TODO Make it choose the IP of the device declaratively
+        ETCD_LISTEN_PEER_URLS            = "https://[${address}]:2380"; # TODO Make it choose the IP of the device declaratively
+        ETCD_INITIAL_ADVERTISE_PEER_URLS = "https://[${address}]:2380"; # TODO Make it choose the IP of the device declaratively
+        ETCD_CLIENT_CERT_AUTH = "true";
+        ETCD_TRUSTED_CA_FILE =       ../../../../example/certs/ca.pem;
+        ETCD_CERT_FILE =             ../../../../example/certs/${config.networking.hostName}.pem;
+        ETCD_KEY_FILE =              ../../../../example/certs/${config.networking.hostName}-key.pem;
+        ETCD_PEER_CLIENT_CERT_AUTH = "true";
+        ETCD_PEER_TRUSTED_CA_FILE = ../../../../example/certs/ca.pem;
+        ETCD_PEER_CERT_FILE =       ../../../../example/certs/${config.networking.hostName}.pem;
+        ETCD_PEER_KEY_FILE =        ../../../../example/certs/${config.networking.hostName}-key.pem;
       #}) // (nixpgs.optionalAttrs (config.services.etcd.discovery == ""){
-        ETCD_INITIAL_CLUSTER = lib.concatMapStringsSep ", " (node: "http://[" + (config.skyflake.nodes."${node}").address + "]:2380") (lib.attrNames config.skyflake.nodes);
+        #ETCD_INITIAL_CLUSTER = lib.concatMapStringsSep ", " (node: "http://[" + (config.skyflake.nodes."${node}").address + "]:2380") (lib.attrNames config.skyflake.nodes);
+        ETCD_INITIAL_CLUSTER = "example1=https://[fec0::1]:2380,example2=https://[fec0::2]:2380,example3=https://[fec0::3]:2380";
         ETCD_INITIAL_CLUSTER_STATE = "new";
         ETCD_INITIAL_CLUSTER_TOKEN = "etcd-cluster";
       #}) // (nixpgs.mapAttrs' (n: v: nixpgs.nameValuePair "ETCD_${n}" v) config.services.etcd.extraConf);
@@ -43,7 +46,7 @@
       serviceConfig = {
         Type = "notify";
         Restart = "always";
-        RestartSec = "30s";
+        RestartSec = "5s";
         ExecStart = "${pkgs.etcd}/bin/etcd";
         User = "etcd";
         LimitNOFILE = 40000;

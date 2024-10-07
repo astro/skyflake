@@ -34,13 +34,13 @@
     #  };
     #};
     volumeStorage = {
-      encrypt = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-        description = ''
-          enable encryption on volume store.
-        '';
-      };
+      #encrypt = lib.mkOption {
+      #  type = lib.types.bool;
+      #  default = false;
+      #  description = ''
+      #    enable encryption on volume store.
+      #  '';
+      #};
       #datacenter = {
       #  type = lib.str;
       #  description = ''
