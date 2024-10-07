@@ -14,6 +14,7 @@
     # config for the master deamon of seaweedfs
     systemd.tmpfiles.settings."10-seaweedfs-master"."/var/lib/seaweedfs/master".d = {
       user = "seaweedfs";
+      group = "seaweedfs";
       mode = "0700";
     };
     systemd.services.seaweedfs-master = {
@@ -32,17 +33,13 @@
         Type = "notify";
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = ''${pkgs.seaweedfs}/bin/weed master -ip=[${address}] -mdir=/var/lib/seaweedfs/master'';
+        ExecStart = ''${pkgs.seaweedfs}/bin/weed master -ip=[${address}] -peers=[fec0::1]:9333,[fec0::2]:9333,[fec0::3]:9333 -mdir=/var/lib/seaweedfs/master'';
         User = "seaweedfs";
         LimitNOFILE = 40000;
       };
     };
 
     # config for the filer deamon of seaweedfs
-    systemd.tmpfiles.settings."10-seaweedfs-filer"."/var/lib/seaweedfs/filer".d = {
-      user = "seaweedfs";
-      mode = "0700";
-    };
     systemd.services.seaweedfs-filer = {
       description = "seaweedfs filer service";
       wantedBy = [ "multi-user.target" ];
@@ -53,11 +50,13 @@
       unitConfig = {
         Documentation = "https://github.com/seaweedfs/seaweedfs/wiki";
       };
-      serviceConfig = {
+      serviceConfig = let
+        address = builtins.elemAt (lib.splitString "/" (lib.head config.systemd.network.networks."01-br0".addresses).Address) 0;
+      in  {
         Type = "notify";
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = ''${pkgs.seaweedfs}/bin/weed filer -master.port=9333 -volume.port=8080 -dir=/var/lib/seaweedfs/filer'';
+        ExecStart = ''${pkgs.seaweedfs}/bin/weed filer -master=${address}:9333 -port=8888'';
         User = "seaweedfs";
         LimitNOFILE = 40000;
       };
@@ -72,18 +71,21 @@
         key_prefix = "seaweedfs."
         timeout = "3s"
         # Set the CA certificate path
-        tls_ca_file=""
+        tls_ca_file =         "${../../../example/certs/ca.pem}"
         # Set the client certificate path
-        tls_client_crt_file=""
+        tls_client_crt_file = "${../../../example/certs/${config.networking.hostName}.pem}"
         # Set the client private key path
-        tls_client_key_file=""      '';
+        tls_client_key_file = "${../../../example/certs/${config.networking.hostName}-key.pem}"
+      '';
       target = "./seaweedfs/filer.toml";
+      user = "seaweedfs";
       mode = "0440";
     };
 
     # config for the volume deamon of seaweedfs
     systemd.tmpfiles.settings."10-seaweedfs-volume"."/var/lib/seaweedfs/volume".d = {
       user = "seaweedfs";
+      group = "seaweedfs";
       mode = "0700";
     };
     systemd.services.seaweedfs-volume = {
