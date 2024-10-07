@@ -56,7 +56,7 @@
         Type = "notify";
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = ''${pkgs.seaweedfs}/bin/weed filer -master=${address}:9333 -port=8888'';
+        ExecStart = ''${pkgs.seaweedfs}/bin/weed filer -master=[${address}]:9333 -port=8888'';
         User = "seaweedfs";
         LimitNOFILE = 40000;
       };
@@ -91,9 +91,9 @@
     systemd.services.seaweedfs-volume = {
       description = "seaweedfs volume service";
       wantedBy = [ "multi-user.target" ];
-      after = [ "network-online.target" "etcd.service" "seaweedfs-master.service" "seaweedfs-filer.service" ];
+      after = [ "network-online.target" "etcd.service" "seaweedfs-master.service" ];
       #  ++ lib.optional config.networking.firewall.enable "firewall.service";
-      wants = [ "network-online.target" "etcd.service" "seaweedfs-master.service" "seaweedfs-filer.service" ];
+      wants = [ "network-online.target" "etcd.service" "seaweedfs-master.service" ];
       #  ++ lib.optional config.networking.firewall.enable "firewall.service";
       unitConfig = {
         Documentation = "https://github.com/seaweedfs/seaweedfs/wiki";
