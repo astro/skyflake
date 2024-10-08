@@ -30,7 +30,7 @@
       serviceConfig = let
         address = builtins.elemAt (lib.splitString "/" (lib.head config.systemd.network.networks."01-br0".addresses).Address) 0;
       in  {
-        Type = "notify";
+        Type = "simple";
         Restart = "always";
         RestartSec = "5s";
         ExecStart = ''${pkgs.seaweedfs}/bin/weed master -ip=[${address}] -peers=[fec0::1]:9333,[fec0::2]:9333,[fec0::3]:9333 -mdir=/var/lib/seaweedfs/master'';
@@ -53,10 +53,10 @@
       serviceConfig = let
         address = builtins.elemAt (lib.splitString "/" (lib.head config.systemd.network.networks."01-br0".addresses).Address) 0;
       in  {
-        Type = "notify";
+        Type = "simple";
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = ''${pkgs.seaweedfs}/bin/weed filer -master=[${address}]:9333 -port=8888'';
+        ExecStart = ''${pkgs.seaweedfs}/bin/weed filer -master=[  ${address}]:9333 -port=8888'';
         User = "seaweedfs";
         LimitNOFILE = 40000;
       };
@@ -101,7 +101,7 @@
       serviceConfig = let
         address = builtins.elemAt (lib.splitString "/" (lib.head config.systemd.network.networks."01-br0".addresses).Address) 0;
       in  {
-        Type = "notify";
+        Type = "simple";
         Restart = "always";
         RestartSec = "5s";
         ExecStart = ''${pkgs.seaweedfs}/bin/weed volume -port=8080 -max=5 -ip=${address} -mserver=localhost:9333 -dir=/var/lib/seaweedfs/volume'';

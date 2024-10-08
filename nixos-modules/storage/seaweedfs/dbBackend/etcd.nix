@@ -44,7 +44,7 @@
       };
 
       serviceConfig = {
-        Type = "notify";
+        Type = "simple";
         Restart = "always";
         RestartSec = "5s";
         ExecStart = "${pkgs.etcd}/bin/etcd";
