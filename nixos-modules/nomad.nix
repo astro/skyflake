@@ -59,6 +59,11 @@ in
           bootstrap_expect = (builtins.length cfg.servers + 2) / 2;
           server_join.retry_join = cfg.servers;
         };
+        advertise = let
+          address = config.skyflake.nodes.${config.networking.hostName}.address;
+        in  {
+            serf = "[${address}]:4648";
+        };
         client = {
           enabled = cfg.client.enable;
           inherit (cfg.client) meta;
@@ -75,7 +80,7 @@ in
       # alternatives to the nomad web ui
       wander damon
       # needed for microvms
-      virtiofsd ceph seaweedfs
+      virtiofsd ceph seaweedfs # TODO fix that both need to be installed.
       jq kmod e2fsprogs
     ];
   };

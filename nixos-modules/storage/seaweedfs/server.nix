@@ -28,7 +28,7 @@
         Documentation = "https://github.com/seaweedfs/seaweedfs/wiki";
       };
       serviceConfig = let
-        address = builtins.elemAt (lib.splitString "/" (lib.head config.systemd.network.networks."01-br0".addresses).Address) 0;
+        address = config.skyflake.nodes.${config.networking.hostName}.address;
       in  {
         Type = "simple";
         Restart = "always";
@@ -51,12 +51,12 @@
         Documentation = "https://github.com/seaweedfs/seaweedfs/wiki";
       };
       serviceConfig = let
-        address = builtins.elemAt (lib.splitString "/" (lib.head config.systemd.network.networks."01-br0".addresses).Address) 0;
+        address = config.skyflake.nodes.${config.networking.hostName}.address;
       in  {
         Type = "simple";
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = ''${pkgs.seaweedfs}/bin/weed filer -master=[  ${address}]:9333 -port=8888'';
+        ExecStart = ''${pkgs.seaweedfs}/bin/weed filer ${lib.optionalString config.skyflake.storage.seaweedfs.volumeStorage.encrypt "-encryptVolumeData"} -master=[${address}]:9333 -port=8888'';
         User = "seaweedfs";
         LimitNOFILE = 40000;
       };
@@ -99,7 +99,7 @@
         Documentation = "https://github.com/seaweedfs/seaweedfs/wiki";
       };
       serviceConfig = let
-        address = builtins.elemAt (lib.splitString "/" (lib.head config.systemd.network.networks."01-br0".addresses).Address) 0;
+        address = config.skyflake.nodes.${config.networking.hostName}.address;
       in  {
         Type = "simple";
         Restart = "always";

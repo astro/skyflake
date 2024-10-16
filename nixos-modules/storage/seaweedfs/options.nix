@@ -18,29 +18,14 @@
         };
       });
     };
-    #master = {
-    #  serverIP = lib.mkOption {
-    #    type = lib.str;
-    #    description = ''
-    #      IP of this node.
-    #    '';
-    #  };
-    #  listenIPs = lib.mkOption {
-    #    type = lib.listOf lib.str;
-    #    description = ''
-    #      IP of all the master servers.
-    #      Can be the same as storage nodes.
-    #    '';
-    #  };
-    #};
     volumeStorage = {
-      #encrypt = lib.mkOption {
-      #  type = lib.types.bool;
-      #  default = false;
-      #  description = ''
-      #    enable encryption on volume store.
-      #  '';
-      #};
+      encrypt = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          enable encryption on volume store.
+        '';
+      };
       #datacenter = {
       #  type = lib.str;
       #  description = ''

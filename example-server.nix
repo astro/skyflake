@@ -88,7 +88,8 @@
 
     storage.seaweedfs = {
       enable = true;
-      filer.db.etcd = {  
+      volumeStorage.encrypt = true;
+      filer.db.etcd = {
         enable = true;
       };
     };
