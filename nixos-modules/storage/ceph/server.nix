@@ -131,7 +131,7 @@ in {
     };
   };
 
-  config = {
+  config = lib.mkIf config.skyflake.storage.ceph.enable {
     boot.kernelModules = [ "ceph" ];
 
     environment.systemPackages = [ cfg.package ];
