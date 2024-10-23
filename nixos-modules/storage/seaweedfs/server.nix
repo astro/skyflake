@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }:
 {
-  config = lib.mkIf config.skyflake.storage.seaweedfs.filer.db.etcd.enable {
+  config = lib.mkIf config.skyflake.storage.seaweedfs.enable {
 
     users.users.seaweedfs = {
       isSystemUser = true;
@@ -29,11 +29,12 @@
       };
       serviceConfig = let
         address = config.skyflake.nodes.${config.networking.hostName}.address;
+        peers = "[fec0::1]:9333,[fec0::2]:9333,[fec0::3]:9333";
       in  {
         Type = "simple";
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = ''${pkgs.seaweedfs}/bin/weed master -ip=[${address}] -peers=[fec0::1]:9333,[fec0::2]:9333,[fec0::3]:9333 -mdir=/var/lib/seaweedfs/master'';
+        ExecStart = ''${pkgs.seaweedfs}/bin/weed master -ip=[${address}] -peers=${peers} -mdir=/var/lib/seaweedfs/master'';
         User = "seaweedfs";
         LimitNOFILE = 40000;
       };
