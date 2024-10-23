@@ -87,13 +87,14 @@
 
 
     storage.seaweedfs = {
-      enable = true;
+      enable = false;
       volumeStorage.encrypt = true;
       filer.db.etcd = {
         enable = true;
       };
     };
     storage.ceph = {
+      enable = true;
       fsid = "8364da79-5e03-49ae-82ea-7d936278cb0f";
       monKeyring = example/ceph.mon.keyring;
       adminKeyring = example/ceph.client.admin.keyring;
