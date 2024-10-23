@@ -62,26 +62,6 @@
         LimitNOFILE = 40000;
       };
     };
-    environment.etc.seaweedfs-filer = { 
-      text = ''
-        [etcd]
-        enabled = true
-        servers = "example1=https://[fec0::1]:2380,example2=https://[fec0::2]:2380,example3=https://[fec0::3]:2380"
-        # username = "seaweedfs"
-        # password = ""
-        key_prefix = "seaweedfs."
-        timeout = "3s"
-        # Set the CA certificate path
-        tls_ca_file =         "${../../../example/certs/ca.pem}"
-        # Set the client certificate path
-        tls_client_crt_file = "${../../../example/certs/${config.networking.hostName}.pem}"
-        # Set the client private key path
-        tls_client_key_file = "${../../../example/certs/${config.networking.hostName}-key.pem}"
-      '';
-      target = "./seaweedfs/filer.toml";
-      user = "seaweedfs";
-      mode = "0440";
-    };
 
     # config for the volume deamon of seaweedfs
     systemd.tmpfiles.settings."10-seaweedfs-volume"."/var/lib/seaweedfs/volume".d = {
