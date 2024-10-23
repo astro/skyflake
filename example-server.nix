@@ -1,6 +1,6 @@
 { instance }:
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   microvm = {
@@ -93,25 +93,25 @@
         enable = true;
       };
     };
-    #storage.ceph = {
-    #  fsid = "8364da79-5e03-49ae-82ea-7d936278cb0f";
-    #  monKeyring = example/ceph.mon.keyring;
-    #  adminKeyring = example/ceph.client.admin.keyring;
-    #  osds = [ {
-    #    id = instance;
-    #    fsid = "8e4ae689-5c15-4381-bd75-19de743378e${toString instance}";
-    #    path = "/dev/vdb";
-    #    deviceClass = "ssd";
-    #    keyfile = toString (./example + "/osd.${toString instance}.keyring");
-    #  } ];
-    #  rbdPools.microvms = {
-    #    params = { size = 2; class = "ssd"; };
-    #  };
-    #  cephfs.skyflake.metaParams = { size = 2; class = "ssd"; };
-    #};
+    storage.ceph = {
+      fsid = "8364da79-5e03-49ae-82ea-7d936278cb0f";
+      monKeyring = example/ceph.mon.keyring;
+      adminKeyring = example/ceph.client.admin.keyring;
+      osds = [ {
+        id = instance;
+        fsid = "8e4ae689-5c15-4381-bd75-19de743378e${toString instance}";
+        path = "/dev/vdb";
+        deviceClass = "ssd";
+        keyfile = toString (./example + "/osd.${toString instance}.keyring");
+      } ];
+      rbdPools.microvms = {
+        params = { size = 2; class = "ssd"; };
+      };
+      cephfs.skyflake.metaParams = { size = 2; class = "ssd"; };
+    };
 
     nomad = {
-      servers = [ "example1" "example2" "example3" ];
+      servers = [ (builtins.concatStringsSep " " (lib.attrNames config.skyflake.nodes)) ];
       client.meta = {
         example-deployment = "yes";
       };
