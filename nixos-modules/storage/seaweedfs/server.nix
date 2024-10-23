@@ -29,12 +29,12 @@
       };
       serviceConfig = let
         address = config.skyflake.nodes.${config.networking.hostName}.address;
-        peers = "[fec0::1]:9333,[fec0::2]:9333,[fec0::3]:9333";
+        peers = "${lib.concatMapStrings (x: x + ":9333,") (builtins.catAttrs "address" (builtins.attrValues  config.skyflake.nodes))}";
       in  {
         Type = "simple";
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = ''${pkgs.seaweedfs}/bin/weed master -ip=[${address}] -peers=${peers} -mdir=/var/lib/seaweedfs/master'';
+        ExecStart = ''${pkgs.seaweedfs}/bin/weed master -ip=${address} -peers=${peers} -mdir=/var/lib/seaweedfs/master'';
         User = "seaweedfs";
         LimitNOFILE = 40000;
       };
