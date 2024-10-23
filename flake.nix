@@ -2,7 +2,9 @@
   description = "Hyperconverged Infratructure for NixOS";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs = {
+      url = "github:NixOS/nixpkgs/1457235a9eee6e05916cd543d3143360e6fd1080";
+    };
     microvm = {
       url = "github:astro/microvm.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -29,7 +31,7 @@
             ./nixos-modules/storage/seaweedfs/options.nix
             ./nixos-modules/storage/seaweedfs/server.nix
             ./nixos-modules/storage/seaweedfs/dbBackend/etcd.nix
-            # ./nixos-modules/storage/ceph/server.nix
+            ./nixos-modules/storage/ceph/server.nix
             ./nixos-modules/defaults.nix
             ./nixos-modules/nodes.nix
             ./nixos-modules/nomad.nix
