@@ -81,7 +81,7 @@
     nodes = builtins.listToAttrs (
       map (instance: {
         name = "example${toString instance}";
-        value.address = "fec0::${toString instance}";
+        value.address = "[fec0::${toString instance}]";
       }) [ 1 2 3 ]
     );
 
