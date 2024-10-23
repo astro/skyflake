@@ -6,10 +6,10 @@
       mode = "0700";
     };
 
-    systemd.services.etcd = {
+    systemd.services."etcd" = {
       description = "etcd key-value store";
       wantedBy = [ "multi-user.target" ];
-      after = [ "network-online.target" ];
+      after = [ "network-online.target" "network.target" ];
       #  ++ lib.optional config.networking.firewall.enable "firewall.service";
       wants = [ "network-online.target" ];
       #  ++ lib.optional config.networking.firewall.enable "firewall.service";
@@ -18,12 +18,11 @@
         address = config.skyflake.nodes.${config.networking.hostName}.address;
       in  {
         ETCD_NAME = config.networking.hostName;
-        #ETCD_DISCOVERY = "true";
         ETCD_DATA_DIR = "/var/lib/etcd";
-        ETCD_ADVERTISE_CLIENT_URLS       = "https://[${address}]:2379"; # TODO Make it choose the IP of the device declaratively
-        ETCD_LISTEN_CLIENT_URLS          = "https://[${address}]:2379"; # TODO Make it choose the IP of the device declaratively
-        ETCD_LISTEN_PEER_URLS            = "https://[${address}]:2380"; # TODO Make it choose the IP of the device declaratively
-        ETCD_INITIAL_ADVERTISE_PEER_URLS = "https://[${address}]:2380"; # TODO Make it choose the IP of the device declaratively
+        ETCD_ADVERTISE_CLIENT_URLS       = "https://${address}:2379";
+        ETCD_LISTEN_CLIENT_URLS          = "https://${address}:2379";
+        ETCD_LISTEN_PEER_URLS            = "https://${address}:2380";
+        ETCD_INITIAL_ADVERTISE_PEER_URLS = "https://${address}:2380";
         ETCD_CLIENT_CERT_AUTH = "true";
         ETCD_TRUSTED_CA_FILE =       ../../../../example/certs/ca.pem;
         ETCD_CERT_FILE =             ../../../../example/certs/${config.networking.hostName}.pem;
@@ -32,21 +31,19 @@
         ETCD_PEER_TRUSTED_CA_FILE = ../../../../example/certs/ca.pem;
         ETCD_PEER_CERT_FILE =       ../../../../example/certs/${config.networking.hostName}.pem;
         ETCD_PEER_KEY_FILE =        ../../../../example/certs/${config.networking.hostName}-key.pem;
-      #}) // (nixpgs.optionalAttrs (config.services.etcd.discovery == ""){
-        ETCD_INITIAL_CLUSTER = lib.concatMapStringsSep ", " (node: "http://[" + (config.skyflake.nodes."${node}").address + "]:2380") (lib.attrNames config.skyflake.nodes);
-        # ETCD_INITIAL_CLUSTER = "example1=https://[fec0::1]:2380,example2=https://[fec0::2]:2380,example3=https://[fec0::3]:2380";
+        ETCD_INITIAL_CLUSTER = "${lib.concatMapStringsSep "," (node: "${node}=https://" + (config.skyflake.nodes."${node}").address + ":2380") (builtins.attrNames config.skyflake.nodes)}";
         ETCD_INITIAL_CLUSTER_STATE = "new";
         ETCD_INITIAL_CLUSTER_TOKEN = "etcd-cluster";
-      #}) // (nixpgs.mapAttrs' (n: v: nixpgs.nameValuePair "ETCD_${n}" v) config.services.etcd.extraConf);
       };
       unitConfig = {
-        Documentation = "https://github.com/coreos/etcd";
+        Documentation = "https://etcd.io/docs/v3.5/";
       };
 
       serviceConfig = {
         Type = "notify";
         Restart = "always";
         RestartSec = "5s";
+        ExecStartPre = "${pkgs.coreutils}/bin/sleep 2"; # TODO fix workaround, so that it doesnt stop on first start because it cant bind.
         ExecStart = "${pkgs.etcd}/bin/etcd";
         User = "etcd";
         LimitNOFILE = 40000;
@@ -57,7 +54,7 @@
       text = ''
         [etcd]
         enabled = true
-        servers = "example1=https://[fec0::1]:2380,example2=https://[fec0::2]:2380,example3=https://[fec0::3]:2380"
+        servers = "${lib.concatMapStringsSep "," (node: "${node}=https://" + (config.skyflake.nodes."${node}").address + ":2380") (builtins.attrNames config.skyflake.nodes)}"
         # username = "seaweedfs"
         # password = ""
         key_prefix = "seaweedfs."
