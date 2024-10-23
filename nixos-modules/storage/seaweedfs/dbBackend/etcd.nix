@@ -1,6 +1,6 @@
 { pkgs, config, lib, ... }:
 {
-  config = lib.mkIf config.skyflake.storage.seaweedfs.filer.db.etcd.enable {
+  config = lib.mkIf (builtins.all (x: x == true) [ config.skyflake.storage.seaweedfs.filer.db.etcd.enable config.skyflake.storage.seaweedfs.enable ]) {
     systemd.tmpfiles.settings."10-etcd"."/var/lib/etcd".d = {
       user = "etcd";
       mode = "0700";
