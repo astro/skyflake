@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.skyflake.nomad;
-
 in
 {
   options.skyflake.nomad = with lib; {
@@ -80,7 +79,7 @@ in
       # alternatives to the nomad web ui
       wander damon
       # needed for microvms
-      virtiofsd ceph seaweedfs # TODO fix that both need to be installed.
+      virtiofsd
       jq kmod e2fsprogs
     ];
   };
