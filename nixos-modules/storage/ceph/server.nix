@@ -148,7 +148,7 @@ in {
       enable = true;
       global = rec {
         inherit (cfg) fsid;
-        publicNetwork = clusterNetwork; #"0.0.0.0/0, ::/0";
+        publicNetwork = clusterNetwork;
         clusterNetwork = lib.concatStringsSep ", " (
           lib.concatMap ({ addresses ? [], ... }:
             # Needs to be changed because of 

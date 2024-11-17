@@ -20,8 +20,7 @@
       '';
     };
 
-    # TODO: rename it to something that allows more than ceph.
-    deploy.rbds = mkOption {
+    deploy.ceph.rbds = mkOption {
       default = {};
       description = ''
         Ceph RBDs used by this MicroVM

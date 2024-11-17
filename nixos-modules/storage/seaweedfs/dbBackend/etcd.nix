@@ -54,7 +54,7 @@
       text = ''
         [etcd]
         enabled = true
-        servers = "${lib.concatMapStringsSep "," (node: "${node}=https://" + (config.skyflake.nodes."${node}").address + ":2380") (builtins.attrNames config.skyflake.nodes)}"
+          servers = "${lib.concatMapStringsSep "," (node: (config.skyflake.nodes."${node}").address + ":2379") (builtins.attrNames config.skyflake.nodes)}"
         # username = "seaweedfs"
         # password = ""
         key_prefix = "seaweedfs."

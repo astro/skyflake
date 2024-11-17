@@ -37,7 +37,7 @@ in
       mountPoint = "/nix/.ro-store";
     } ];
     volumes = [ {
-      image = config.skyflake.deploy.rbds.root.path;
+      image = config.skyflake.deploy.ceph.rbds.root.path;
       mountPoint = "/";
       # don't let microvm.nix create an image file
       autoCreate = false;
@@ -55,7 +55,7 @@ in
     } ];
   };
 
-  config.skyflake.deploy.rbds.root = {
+  config.skyflake.deploy.ceph.rbds.root = {
     pool = "microvms";
     namespace = user;
     name = "${repo}-${vmName}-root";

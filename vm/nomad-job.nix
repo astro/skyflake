@@ -207,7 +207,7 @@ ${''
           }
         }
 
-        ${lib.concatMapStrings (id: with config.skyflake.deploy.rbds.${id}; ''
+        ${lib.concatMapStrings (id: with config.skyflake.deploy.ceph.rbds.${id}; ''
           task "rbd-map-${id}" {
             driver = "raw_exec"
             lifecycle {
@@ -270,7 +270,7 @@ ${''
           EOD
             }
           }
-        '') (builtins.attrNames config.skyflake.deploy.rbds)}
+        '') (builtins.attrNames config.skyflake.deploy.ceph.rbds)}
 
         task "hypervisor" {
           driver = "raw_exec"
