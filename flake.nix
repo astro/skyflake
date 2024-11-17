@@ -3,17 +3,22 @@
 
   inputs = {
     nixpkgs = {
+      url = "github:NixOS/nixpkgs/nixos-unstable";
+    };
+    nomad-nixpkgs = {
       url = "github:NixOS/nixpkgs/1457235a9eee6e05916cd543d3143360e6fd1080"; # Last version of NixOS unstable that supports a foss version of nomad.
     };
     microvm = {
       url = "github:astro/microvm.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    nix-cache-cut.url = "github:astro/nix-cache-cut";
+    nix-cache-cut = {
+      url = "github:astro/nix-cache-cut";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, microvm, nix-cache-cut }:
+  outputs = { self, nixpkgs, nomad-nixpkgs, microvm, nix-cache-cut }:
     let
       system = "x86_64-linux";
 
@@ -55,10 +60,11 @@
             nixpkgs.lib.nixosSystem {
               inherit system;
               modules = [
+                {nixpkgs.overlays = [ (final: prev: { nomadPin = nomad-nixpkgs.legacyPackages.${prev.system}; }) ];}
                 microvm.nixosModules.microvm
                 self.nixosModules.default
                 (import ./example-server.nix { inherit instance; })
-              ];
+            ];
             };
 
         in {

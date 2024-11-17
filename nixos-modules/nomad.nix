@@ -41,7 +41,7 @@ in
   config = {
     services.nomad = {
       enable = true;
-      package = pkgs.nomad_1_6; # nomad 1.6 is the newest version under an foss license.
+      package = pkgs.nomadPin.nomad_1_6; # nomad 1.6 is the newest version under an foss license.
       dropPrivileges = false;
       enableDocker = false;
 
