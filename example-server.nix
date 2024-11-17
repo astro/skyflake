@@ -19,6 +19,7 @@
         image = "example${toString instance}-persist.img";
         mountPoint = "/";
         size = 20 * 1024;
+        fsType = "btrfs"; # needed for some seaweedfs optimizations.
       }
       {
         image = "example${toString instance}-ceph.img";
