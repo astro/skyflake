@@ -97,7 +97,7 @@
     }; }
 
     # config for the mount deamon of seaweedfs
-      (lib.mapAttrs' (name: value: lib.nameValuePair ("seaweedfs-mount-" + name) { 
+      (lib.mapAttrs' (name: value: lib.nameValuePair ("seaweedfs-mount" + (lib.replaceStrings [ "/" ] [ "-" ] name)) { 
         description = "seaweedfs mount service";
         wantedBy = [ "multi-user.target" ];
         after = [ "network-online.target" "etcd.service" "seaweedfs-filer.service" ];
