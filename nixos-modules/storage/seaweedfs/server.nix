@@ -107,19 +107,23 @@
         unitConfig = {
           Documentation = "https://github.com/seaweedfs/seaweedfs/wiki";
         };
+        path = with pkgs; [ fuse3 ];
         serviceConfig = {
           Type = "simple";
           Restart = "always";
           RestartSec = "5s";
-          #TODO FIX hardcoding of port
+          #TODO FIX hardcoding of port https://github.com/seaweedfs/seaweedfs/issues/877
           ExecStart = ''${pkgs.seaweedfs}/bin/weed mount -filer=localhost:8888 -volumeServerAccess=filerProxy ${lib.optionalString (!builtins.isNull value.replication) "-replication=${builtins.toString value.replication}"} -cacheCapacityMB=${builtins.toString value.cacheCapacity} -chunkSizeLimitMB=${builtins.toString value.chunkSizeLimit} -dirAutoCreate -dir=${value.mountPoint} -filer.path=${value.mountPoint}'';
-          User = "seaweedfs";
+          # TODO FIX mount with root!!!
+          User = "root";
           LimitNOFILE = 40000;
         };
       }) config.skyflake.storage.seaweedfs.mounts)
     ];
 
-    environment.systemPackages = [ pkgs.seaweedfs ];
+    environment.systemPackages = with pkgs; [
+      seaweedfs # install seaweedfs utils
+     ];
     /* TODO: add firewall to skyflake.
     networking.firewall = lib.mkIf config.services.etcd.openFirewall {
       allowedTCPPorts = [
