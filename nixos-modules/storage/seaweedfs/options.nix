@@ -50,11 +50,12 @@
     mounts = lib.mkOption {
       type = lib.types.attrsOf (lib.types.submodule { 
         options = {
-          mountPoint = lib.mkOption {
+          mountSource = lib.mkOption {
             type = lib.types.str;
             default = null;
+            example = "/filesystems/1a32bfd9-0cbc-430a-a28a-d9fd862e9ebc";
             description = ''
-              Place where the filesystem is Mounted.
+              Place where the filesystem is saved in seaweedfs.
             '';
           };
           replication = lib.mkOption {

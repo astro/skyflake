@@ -156,7 +156,7 @@ in {
 
       binaryCachePath = mkOption {
         type = types.str;
-        default = mounts.skyflake-binary-cache.mountPoint;
+        default = "/var/lib/skyflake/binary-cache";
         description = ''
           Directory which is mounted on all nodes that will be used to
           share the /nix/store with MicroVMs.
@@ -165,7 +165,7 @@ in {
 
       sharedGcrootsPath = mkOption {
         type = types.str;
-        default = mounts.skyflake-gcroots.mountPoint;
+        default = "/nix/var/nix/gcroots/skyflake";
         description = ''
           Directory which is mounted on all nodes, is linked from
           /nix/var/nix/gcroots/, and contains links to all currently
@@ -212,8 +212,8 @@ in {
  
   config = {
     skyflake.storage.seaweedfs.mounts = {
-      skyflake-binary-cache.mountPoint = "/var/lib/skyflake/binary-cache";
-      skyflake-gcroots.mountPoint = "/nix/var/nix/gcroots/skyflake";
+      ${config.skyflake.deploy.binaryCachePath}.mountSource = "/skyflake-internals${config.skyflake.deploy.binaryCachePath}";
+      ${config.skyflake.deploy.sharedGcrootsPath}.mountSource = "/skyflake-internals${config.skyflake.deploy.sharedGcrootsPath}";
     };
 
     services.openssh.enable = true;
