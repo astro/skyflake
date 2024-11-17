@@ -1,10 +1,10 @@
 { instance }:
 
-{ config, pkgs, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   microvm = {
-    vcpu = 4;
+    vcpu = 2;
     mem = 4096;
 
     shares = [
@@ -20,11 +20,11 @@
         mountPoint = "/";
         size = 20 * 1024;
       }
-      # {
-      #   image = "example${toString instance}-ceph.img";
-      #   mountPoint = null;
-      #   size = 20 * 1024;
-      # }
+      {
+        image = "example${toString instance}-ceph.img";
+        mountPoint = null;
+        size = 20 * 1024;
+      }
    ];
    writableStoreOverlay = "/nix/.rw-store";
 
@@ -69,8 +69,6 @@
           IPv6AcceptRA = true;
         };
         addresses = [ {
-          # TODO: addressConfig needs to be removed.
-          # trace: warning: Using 'addressConfig' is deprecated! Move all attributes inside one level up and remove it.
           Address = "fec0::${toString instance}/64"; # 
         } ];
       };
@@ -131,5 +129,6 @@
 
   environment.systemPackages = with pkgs; [
     tcpdump
+    nmap
   ];
 }

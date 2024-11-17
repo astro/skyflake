@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs = {
-      url = "github:NixOS/nixpkgs/1457235a9eee6e05916cd543d3143360e6fd1080";
+      url = "github:NixOS/nixpkgs/1457235a9eee6e05916cd543d3143360e6fd1080"; # Last version of NixOS unstable that supports a foss version of nomad.
     };
     microvm = {
       url = "github:astro/microvm.nix";
@@ -81,7 +81,7 @@
 
           make-ceph = {
             type = "app";
-            #program = toString (pkgs.callPackage ./pkgs/make-ceph.nix {});
+            program = toString (pkgs.callPackage ./pkgs/make-ceph.nix {});
           };
 
         };
