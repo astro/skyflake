@@ -55,7 +55,7 @@ in
 
         server = {
           enabled = cfg.server.enable;
-          bootstrap_expect = (builtins.length cfg.servers + 2) / 2;
+          bootstrap_expect = builtins.length cfg.servers; # why not this? Why this weird formular? (${NOMAD_SERVERS} + 2) / 2 ?
           server_join.retry_join = cfg.servers;
         };
         advertise = let
