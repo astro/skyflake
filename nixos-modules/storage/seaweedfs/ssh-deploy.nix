@@ -146,8 +146,8 @@ let
 in {
   config = {
     skyflake.storage.seaweedfs.mounts = lib.mkIf config.skyflake.storage.seaweedfs.enable {
-      skyflake-binary-cache.mountPoint = "/var/lib/skyflake/binary-cache";
-      skyflake-gcroots.mountPoint = "/nix/var/nix/gcroots/skyflake";
+      ${config.skyflake.deploy.binaryCachePath}.mountSource = "/skyflake-internals${config.skyflake.deploy.binaryCachePath}";
+      ${config.skyflake.deploy.sharedGcrootsPath}.mountSource = "/skyflake-internals${config.skyflake.deploy.sharedGcrootsPath}";
     };
 
     services.openssh.enable = true;
@@ -162,7 +162,7 @@ in {
     };
 
     environment.etc."skyflake/vm".source = pkgs.substituteAllFiles {
-      src = ../vm;
+      src = ../../../vm;
       files = [ "." ];
       inherit (config.skyflake.deploy) binaryCachePath customizationModule;
     };
