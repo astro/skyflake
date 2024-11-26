@@ -61,7 +61,7 @@ in
         advertise = let
           address = config.skyflake.nodes.${config.networking.hostName}.address;
         in  {
-            serf = "[${address}]:4648";
+            serf = "${address}:4648";
         };
         client = {
           enabled = cfg.client.enable;
