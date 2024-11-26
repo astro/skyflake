@@ -34,7 +34,7 @@ always be able to access its storage, regardless of the server they
 are started on.
 
 We solve this problem by moving the VM filesystems to a network
-filesystem: Ceph.
+filesystem: Ceph and also seaweedfs.
 
 
 ### Network Setup

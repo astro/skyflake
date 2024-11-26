@@ -22,7 +22,7 @@ A sample `flake.nix`:
     nixosConfigurations = {
       my-microvm = nixpkgs.lib.nixosSystem {
         modules = [ {
-          system.stateVersion = "22.11";
+          system.stateVersion = "24.11";
           networking.hostName = "my-microvm";
           services.openssh = {
             enable = true;
