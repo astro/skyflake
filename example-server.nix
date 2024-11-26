@@ -70,7 +70,7 @@
           IPv6AcceptRA = true;
         };
         addresses = [ {
-          Address = "fec0::${toString instance}/64"; # 
+          Address = "fec0::${toString instance}/64";
         } ];
       };
     };
@@ -88,6 +88,8 @@
     storage.seaweedfs = {
       enable = false;
       volumeStorage.encrypt = true;
+      # example mount below.
+      # mounts."/mnt".mountSource = "/filesystems/1a32bfd9-0cbc-430a-a28a-d9fd862e9ebc";
       filer.db.etcd = {
         enable = true;
       };
@@ -111,7 +113,7 @@
     };
 
     nomad = {
-      servers = [ (builtins.concatStringsSep " " (lib.attrNames config.skyflake.nodes)) ];
+      servers = builtins.attrNames config.skyflake.nodes;
       client.meta = {
         example-deployment = "yes";
       };
