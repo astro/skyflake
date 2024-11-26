@@ -42,6 +42,12 @@
             ./nixos-modules/nomad.nix
             ./nixos-modules/users.nix
             ./nixos-modules/ssh-deployOptions.nix
+            (import ./nixos-modules/seaweedf/ssh-deploy.nix {
+              inherit microvm nixpkgs;
+            })
+            (import ./nixos-modules/ceph/ssh-deploy.nix {
+              inherit microvm nixpkgs;
+            })
             {
               nixpkgs.overlays = [
                 nix-cache-cut.overlays.default
