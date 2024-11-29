@@ -46,7 +46,7 @@
           };
           fsType = mkOption {
             type = str;
-            default = "ext4";
+            default = "btrfs";
             description = ''
               Which mkfs to use when `autoCreate = true`
             '';

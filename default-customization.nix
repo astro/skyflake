@@ -78,5 +78,5 @@ in
     value = "yes";
   } ];
 
-  config.fileSystems."/".fsType = lib.mkForce "ext4";
+  config.fileSystems."/".fsType = lib.mkForce "btrfs";
 }
