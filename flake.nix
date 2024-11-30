@@ -33,6 +33,7 @@
       nixosModules = {
         default = {
           imports = [
+            {nixpkgs.overlays = [ (final: prev: { nomadPin = nomad-nixpkgs.legacyPackages.${prev.system}; }) ];}
             ./nixos-modules/storage/seaweedfs/options.nix
             ./nixos-modules/storage/seaweedfs/server.nix
             ./nixos-modules/storage/seaweedfs/dbBackend/etcd.nix
@@ -68,7 +69,6 @@
             nixpkgs.lib.nixosSystem {
               inherit system;
               modules = [
-                {nixpkgs.overlays = [ (final: prev: { nomadPin = nomad-nixpkgs.legacyPackages.${prev.system}; }) ];}
                 microvm.nixosModules.microvm
                 self.nixosModules.default
                 (import ./example-server.nix { inherit instance; })
