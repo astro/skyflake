@@ -41,6 +41,7 @@
               ETCD_LISTEN_PEER_URLS = "https://${address}:2380";
               ETCD_INITIAL_ADVERTISE_PEER_URLS = "https://${address}:2380";
               ETCD_CLIENT_CERT_AUTH = "true";
+              ETCD_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"; # allow only strong ciphers.
               ETCD_TRUSTED_CA_FILE = "${config.skyflake.storage.seaweedfs.filer.db.etcd.trustedCaFile}";
               ETCD_CERT_FILE = "${config.skyflake.storage.seaweedfs.filer.db.etcd.certFile}";
               ETCD_KEY_FILE = "${config.skyflake.storage.seaweedfs.filer.db.etcd.keyFile}";
