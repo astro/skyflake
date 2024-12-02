@@ -7,7 +7,7 @@
           "server auth",
           "client auth"
         ],
-        "expiry": "876000h"
+        "expiry": "8760h"
     }
   }
 }

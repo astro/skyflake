@@ -15,5 +15,4 @@
       builders-use-substitutes = true
     '';
   };
-  
 }

@@ -92,6 +92,9 @@
       # mounts."/mnt".mountSource = "/filesystems/1a32bfd9-0cbc-430a-a28a-d9fd862e9ebc";
       filer.db.etcd = {
         enable = true;
+        certFile = example/certs/default.pem; 
+        keyFile = example/certs/default-key.pem;
+        trustedCaFile = example/certs/ca.pem;
       };
     };
     storage.ceph = {

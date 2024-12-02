@@ -25,7 +25,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
 
     in {
-      formatter.${system} = pkgs.alejandra;
+      # formatter.${system} = pkgs.alejandra;
       packages.${system} = import ./pkgs/doc.nix {
         inherit pkgs self;
       };
@@ -36,7 +36,8 @@
             {nixpkgs.overlays = [ (final: prev: { nomadPin = nomad-nixpkgs.legacyPackages.${prev.system}; }) ];}
             ./nixos-modules/storage/seaweedfs/options.nix
             ./nixos-modules/storage/seaweedfs/server.nix
-            ./nixos-modules/storage/seaweedfs/dbBackend/etcd.nix
+            ./nixos-modules/storage/seaweedfs/db-backend/etcd/default.nix
+            ./nixos-modules/storage/seaweedfs/db-backend/etcd/options.nix
             ./nixos-modules/storage/ceph/server.nix
             ./nixos-modules/defaults.nix
             ./nixos-modules/nodes.nix
