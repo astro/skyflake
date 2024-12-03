@@ -9,6 +9,15 @@ in
       default = "sky0";
     };
 
+    # https://developer.hashicorp.com/nomad/docs/install/production/requirements#ports-used
+    networking.firewall.allowedUDPPorts = [
+      4648 #Serf WAN
+    ];
+    networking.firewall.allowedTCPPorts = [
+      4646 # HTTP API
+      4648 # Serf WAN
+    ];
+
     server.enable = mkOption {
       type = types.bool;
       default = builtins.elem config.networking.hostName cfg.servers;

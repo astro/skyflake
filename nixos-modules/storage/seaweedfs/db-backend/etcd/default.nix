@@ -17,17 +17,20 @@
           mode = "0700";
         };
 
+        networking.firewall.allowedTCPPorts = [ 2380 ];
+
         systemd.services."etcd" = {
           description = "etcd key-value store";
           wantedBy = [ "multi-user.target" ];
           after = [
             "network-online.target"
             "network.target"
-          ];
-          #  ++ lib.optional config.networking.firewall.enable "firewall.service";
-          wants = [ "network-online.target" ];
-          #  ++ lib.optional config.networking.firewall.enable "firewall.service";
-
+          ] ++ lib.optionals config.networking.firewall.enable [ "firewall.service" ];
+          wants =
+            [ "network-online.target" ]
+            ++ lib.optionals config.networking.firewall.enable [
+              "firewall.service"
+            ];
           environment =
             # (nixpgs.filterAttrs (n: v: v != null)
             let

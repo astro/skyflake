@@ -150,7 +150,10 @@ in {
       skyflake-gcroots.mountPoint = "/nix/var/nix/gcroots/skyflake";
     };
 
-    services.openssh.enable = true;
+    services.openssh = {
+      enable = true;
+      openFirewall = true;
+    };
 
     users.users = builtins.mapAttrs (_: userConfig: {
       openssh.authorizedKeys.keys = map (sshKey:

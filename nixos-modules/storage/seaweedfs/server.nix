@@ -7,6 +7,22 @@
 {
   config = lib.mkIf config.skyflake.storage.seaweedfs.enable {
 
+    networking.firewall = {
+      allowedTCPPorts =
+        [
+          9333 # seaweedfs Master
+          19333 # seaweedfs Master
+          # TODO Make option to block web UI
+          8080 # seaweedfs Volume
+          18080 # seaweedfs Volume
+          8888 # seaweedfs Filer
+          18888 # seaweedfs Filer
+        ]
+        ++ lib.optionals config.skyflake.storage.seaweedfs.s3.enable [
+          config.skyflake.storage.seaweedfs.s3.port
+        ];
+    };
+
     users.users.seaweedfs = {
       isSystemUser = true;
       group = "seaweedfs";
@@ -38,13 +54,11 @@
           after = [
             "network-online.target"
             "etcd.service"
-          ];
-          #  ++ lib.optional config.networking.firewall.enable "firewall.service";
+          ] ++ lib.optionals config.networking.firewall.enable [ "firewall.service" ];
           wants = [
             "network-online.target"
             "etcd.service"
-          ];
-          #  ++ lib.optional config.networking.firewall.enable "firewall.service";
+          ] ++ lib.optionals config.networking.firewall.enable [ "firewall.service" ];
           unitConfig = {
             Documentation = "https://github.com/seaweedfs/seaweedfs/wiki";
           };
@@ -73,14 +87,12 @@
             "network-online.target"
             "etcd.service"
             "seaweedfs-master.service"
-          ];
-          #  ++ lib.optional config.networking.firewall.enable "firewall.service";
+          ] ++ lib.optionals config.networking.firewall.enable [ "firewall.service" ];
           wants = [
             "network-online.target"
             "etcd.service"
             "seaweedfs-master.service"
-          ];
-          #  ++ lib.optional config.networking.firewall.enable "firewall.service";
+          ] ++ lib.optionals config.networking.firewall.enable [ "firewall.service" ];
           unitConfig = {
             Documentation = "https://github.com/seaweedfs/seaweedfs/wiki";
           };
@@ -106,14 +118,12 @@
             "network-online.target"
             "etcd.service"
             "seaweedfs-master.service"
-          ];
-          #  ++ lib.optional config.networking.firewall.enable "firewall.service";
+          ] ++ lib.optionals config.networking.firewall.enable [ "firewall.service" ];
           wants = [
             "network-online.target"
             "etcd.service"
             "seaweedfs-master.service"
-          ];
-          #  ++ lib.optional config.networking.firewall.enable "firewall.service";
+          ] ++ lib.optionals config.networking.firewall.enable [ "firewall.service" ];
           unitConfig = {
             Documentation = "https://github.com/seaweedfs/seaweedfs/wiki";
           };
@@ -143,14 +153,12 @@
             "network-online.target"
             "etcd.service"
             "seaweedfs-filer.service"
-          ];
-          #  ++ lib.optional config.networking.firewall.enable "firewall.service";
+          ] ++ lib.optionals config.networking.firewall.enable [ "firewall.service" ];
           wants = [
             "network-online.target"
             "etcd.service"
             "seaweedfs-filer.service"
-          ];
-          #  ++ lib.optional config.networking.firewall.enable "firewall.service";
+          ] ++ lib.optionals config.networking.firewall.enable [ "firewall.service" ];
           unitConfig = {
             Documentation = "https://github.com/seaweedfs/seaweedfs/wiki";
           };
@@ -176,14 +184,5 @@
     environment.systemPackages = with pkgs; [
       seaweedfs # install seaweedfs utils
     ];
-    /*
-      TODO: add firewall to skyflake.
-      networking.firewall = lib.mkIf config.services.etcd.openFirewall {
-        allowedTCPPorts = [
-          2379 # for client requests
-          2380 # for peer communication
-        ];
-      };
-    */
   };
 }

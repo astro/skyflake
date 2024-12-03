@@ -40,8 +40,7 @@
   networking.hostName = "example${toString instance}";
   users.users.root.password = "";
 
-  # TODO:? Shoulld firewall be fixed?
-  networking.firewall.enable = false;
+  networking.firewall.enable = true;
 
   networking.useDHCP = false;
   networking.useNetworkd = true;

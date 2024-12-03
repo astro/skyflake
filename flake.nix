@@ -40,6 +40,7 @@
             ./nixos-modules/storage/seaweedfs/db-backend/etcd/options.nix
             ./nixos-modules/storage/ceph/server.nix
             ./nixos-modules/defaults.nix
+            ./nixos-modules/firewall.nix
             ./nixos-modules/nodes.nix
             ./nixos-modules/nomad.nix
             ./nixos-modules/users.nix

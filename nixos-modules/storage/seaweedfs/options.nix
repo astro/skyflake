@@ -32,22 +32,20 @@
       #  '';
       #};
     };
-    S3 = lib.mkOption {
-      type = lib.types {
-        enable = lib.mkOption {
-          type = lib.bool;
-          default = false;
-          description = ''
-            If you want to expose an S3 compatible bucket.
-          '';
-        };
-        port = lib.mkOption {
-          type = lib.types.port; # FIXME
-          default = 8333;
-          description = ''
-            The port the S3 API should listen to.
-          '';
-        };
+    s3 = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          If you want to expose an S3 compatible bucket.
+        '';
+      };
+      port = lib.mkOption {
+        type = lib.types.port;
+        default = 8333;
+        description = ''
+          The port the S3 API should listen to.
+        '';
       };
     };
     mounts = lib.mkOption {

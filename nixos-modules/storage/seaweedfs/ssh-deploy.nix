@@ -150,7 +150,10 @@ in {
       ${config.skyflake.deploy.sharedGcrootsPath}.mountSource = "/skyflake-internals${config.skyflake.deploy.sharedGcrootsPath}";
     };
 
-    services.openssh.enable = true;
+    services.openssh = {
+      enable = true;
+      openFirewall = true;
+    };
 
     users.users = builtins.mapAttrs (_: userConfig: {
       openssh.authorizedKeys.keys = map (sshKey:
