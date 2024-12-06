@@ -2,18 +2,30 @@
   description = "Hyperconverged Infratructure for NixOS";
 
   inputs = {
-    microvm.url = "github:astro/microvm.nix";
-    microvm.inputs.nixpkgs.follows = "nixpkgs";
-    nix-cache-cut.url = "github:astro/nix-cache-cut";
+    nixpkgs = {
+      url = "github:NixOS/nixpkgs/nixos-unstable";
+    };
+    nomad-nixpkgs = {
+      url = "github:NixOS/nixpkgs/1457235a9eee6e05916cd543d3143360e6fd1080"; # Last version of NixOS unstable that supports a foss version of nomad.
+    };
+    microvm = {
+      url = "github:astro/microvm.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-cache-cut = {
+      url = "github:astro/nix-cache-cut";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, microvm, nix-cache-cut }:
+  outputs = { self, nixpkgs, nomad-nixpkgs, microvm, nix-cache-cut }:
     let
       system = "x86_64-linux";
 
       pkgs = nixpkgs.legacyPackages.${system};
 
     in {
+      # formatter.${system} = pkgs.alejandra;
       packages.${system} = import ./pkgs/doc.nix {
         inherit pkgs self;
       };
@@ -21,14 +33,28 @@
       nixosModules = {
         default = {
           imports = [
+            {nixpkgs.overlays = [ (final: prev: { nomadPin = nomad-nixpkgs.legacyPackages.${prev.system}; }) ];}
+            ./nixos-modules/storage/seaweedfs/options.nix
+            ./nixos-modules/storage/seaweedfs/server.nix
+            ./nixos-modules/storage/seaweedfs/db-backend/etcd/default.nix
+            ./nixos-modules/storage/seaweedfs/db-backend/etcd/options.nix
             ./nixos-modules/storage/ceph/server.nix
             ./nixos-modules/defaults.nix
+            ./nixos-modules/firewall.nix
             ./nixos-modules/nodes.nix
             ./nixos-modules/nomad.nix
             ./nixos-modules/users.nix
-            (import ./nixos-modules/ssh-deploy.nix {
-              inherit microvm nixpkgs;
-            })
+            ./nixos-modules/ssh-deployOptions.nix
+            (import             
+              ./nixos-modules/storage/seaweedfs/ssh-deploy.nix {
+                inherit microvm nixpkgs; 
+              }
+            )
+            (import
+              ./nixos-modules/storage/ceph/ssh-deploy.nix {
+                inherit microvm nixpkgs; 
+              } 
+            )
             {
               nixpkgs.overlays = [
                 nix-cache-cut.overlays.default
@@ -48,7 +74,7 @@
                 microvm.nixosModules.microvm
                 self.nixosModules.default
                 (import ./example-server.nix { inherit instance; })
-              ];
+            ];
             };
 
         in {

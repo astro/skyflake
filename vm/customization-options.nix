@@ -20,7 +20,7 @@
       '';
     };
 
-    deploy.rbds = mkOption {
+    deploy.ceph.rbds = mkOption {
       default = {};
       description = ''
         Ceph RBDs used by this MicroVM
@@ -46,7 +46,7 @@
           };
           fsType = mkOption {
             type = str;
-            default = "ext4";
+            default = "btrfs";
             description = ''
               Which mkfs to use when `autoCreate = true`
             '';

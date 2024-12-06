@@ -41,7 +41,7 @@ in
   systemd.services.skyflake-install-cache-gc = {
     wantedBy = [ "multi-user.target" ];
     requires = [ "nomad.service" ];
-    path = with pkgs; [ nomad ];
+    path = [ config.services.nomad.package ];
     script = ''
       nomad run -detach ${jobFile}
     '';

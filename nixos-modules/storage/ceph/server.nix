@@ -51,6 +51,11 @@ let
 
 in {
   options.skyflake.storage.ceph = {
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      example = true;
+    };
     package = lib.mkPackageOption pkgs "ceph" { };
     fsid = lib.mkOption {
       type = lib.types.str;
@@ -100,7 +105,7 @@ in {
     };
     rbdPools = lib.mkOption {
       default = {};
-      type = with lib.types; attrsOf (submodule ({ name, ... }: {
+      type = with lib.types; attrsOf (submodule ({ ... }: {
         options = {
           params = poolParamsOpts;
         };
@@ -126,7 +131,7 @@ in {
     };
   };
 
-  config = {
+  config = lib.mkIf config.skyflake.storage.ceph.enable {
     boot.kernelModules = [ "ceph" ];
 
     environment.systemPackages = [ cfg.package ];
@@ -143,10 +148,12 @@ in {
       enable = true;
       global = rec {
         inherit (cfg) fsid;
-        publicNetwork = clusterNetwork; #"0.0.0.0/0, ::/0";
+        publicNetwork = clusterNetwork;
         clusterNetwork = lib.concatStringsSep ", " (
           lib.concatMap ({ addresses ? [], ... }:
-            lib.concatMap ({ addressConfig ? {}, ... }:
+            # Needs to be changed because of 
+            # trace: warning: Using 'addressConfig' is deprecated! Move all attributes inside one level up and remove it.
+            lib.concatMap ({ addressConfig ? {}, ... }: 
               if addressConfig ? Address
               then [ addressConfig.Address ]
               else []

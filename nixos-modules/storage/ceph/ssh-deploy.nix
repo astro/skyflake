@@ -141,84 +141,19 @@ let
     "no-user-rc"
     "restrict"
   ];
-
   cfg = config.skyflake.deploy;
-  gcCfg = config.skyflake.gc;
 
 in {
-  options.skyflake = with lib; {
-    deploy = {
-      datacenters = mkOption {
-        type = with types; listOf str;
-        default = [ config.skyflake.nomad.datacenter ];
-        description = ''
-          List of datacenters to deploy to.
-        '';
-      };
-
-      binaryCachePath = mkOption {
-        type = types.str;
-        default = cephfs.skyflake-binary-cache.mountPoint;
-        description = ''
-          Directory which is mounted on all nodes that will be used to
-          share the /nix/store with MicroVMs.
-        '';
-      };
-
-      sharedGcrootsPath = mkOption {
-        type = types.str;
-        default = cephfs.skyflake-gcroots.mountPoint;
-        description = ''
-          Directory which is mounted on all nodes, is linked from
-          /nix/var/nix/gcroots/, and contains links to all currently
-          required microvms.
-        '';
-      };
-
-      customizationModule = mkOption {
-        type = types.path;
-        default = ../default-customization.nix;
-        description = ''
-          NixOS module to add when extending a guest NixOS configuration
-          with MicroVM settings.
-        '';
-      };
-    };
-
-    gc = {
-      cron = mkOption {
-        type = types.str;
-        default = "@hourly";
-        description = lib.mdDoc ''
-          See `cron` in https://developer.hashicorp.com/nomad/docs/job-specification/periodic#periodic-parameters
-        '';
-      };
-    };
-
-    microvmUid = mkOption {
-      type = types.int;
-      default = 999;
-      description = ''
-        A fixed UID for MicroVM files makes sense for the whole cluster.
-      '';
-    };
-
-    debug = mkOption {
-      type = types.bool;
-      default = false;
-      description = ''
-          Enable debug output. Do not use in production!
-        '';
-    };
-  };
-
   config = {
-    skyflake.storage.ceph.cephfs = {
+    skyflake.storage.ceph.cephfs = lib.mkIf config.skyflake.storage.ceph.enable {
       skyflake-binary-cache.mountPoint = "/var/lib/skyflake/binary-cache";
       skyflake-gcroots.mountPoint = "/nix/var/nix/gcroots/skyflake";
     };
 
-    services.openssh.enable = true;
+    services.openssh = {
+      enable = true;
+      openFirewall = true;
+    };
 
     users.users = builtins.mapAttrs (_: userConfig: {
       openssh.authorizedKeys.keys = map (sshKey:
@@ -230,7 +165,7 @@ in {
     };
 
     environment.etc."skyflake/vm".source = pkgs.substituteAllFiles {
-      src = ../vm;
+      src = ../../../vm;
       files = [ "." ];
       inherit (config.skyflake.deploy) binaryCachePath customizationModule;
     };

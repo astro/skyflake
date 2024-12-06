@@ -7,21 +7,27 @@
     vcpu = 2;
     mem = 4096;
 
-    shares = [ {
-      tag = "ro-store";
-      source = "/nix/store";
-      mountPoint = "/nix/.ro-store";
-    } ];
-    volumes = [ {
-      image = "example${toString instance}-persist.img";
-      mountPoint = "/";
-      size = 20 * 1024;
-    } {
-      image = "example${toString instance}-ceph.img";
-      mountPoint = null;
-      size = 20 * 1024;
-    } ];
-    writableStoreOverlay = "/nix/.rw-store";
+    shares = [
+      {
+        tag = "ro-store";
+        source = "/nix/store";
+        mountPoint = "/nix/.ro-store";
+      } 
+    ];
+    volumes = [
+      {
+        image = "example${toString instance}-persist.img";
+        mountPoint = "/";
+        size = 20 * 1024;
+        fsType = "btrfs"; # needed for some seaweedfs optimizations.
+      }
+      {
+        image = "example${toString instance}-ceph.img";
+        mountPoint = null;
+        size = 20 * 1024;
+      }
+   ];
+   writableStoreOverlay = "/nix/.rw-store";
 
     interfaces = [ {
       id = "eth0";
@@ -34,8 +40,7 @@
   networking.hostName = "example${toString instance}";
   users.users.root.password = "";
 
-  # TODO:
-  networking.firewall.enable = false;
+  networking.firewall.enable = true;
 
   networking.useDHCP = false;
   networking.useNetworkd = true;
@@ -64,7 +69,7 @@
           IPv6AcceptRA = true;
         };
         addresses = [ {
-          addressConfig.Address = "fec0::${toString instance}/64";
+          Address = "fec0::${toString instance}/64";
         } ];
       };
     };
@@ -74,11 +79,25 @@
     nodes = builtins.listToAttrs (
       map (instance: {
         name = "example${toString instance}";
-        value.address = "fec0::${toString instance}";
+        value.address = "[fec0::${toString instance}]";
       }) [ 1 2 3 ]
     );
 
-    storage.ceph = rec {
+
+    storage.seaweedfs = {
+      enable = false;
+      volumeStorage.encrypt = true;
+      # example mount below.
+      # mounts."/mnt".mountSource = "/filesystems/1a32bfd9-0cbc-430a-a28a-d9fd862e9ebc";
+      filer.db.etcd = {
+        enable = true;
+        certFile = example/certs/default.pem; 
+        keyFile = example/certs/default-key.pem;
+        trustedCaFile = example/certs/ca.pem;
+      };
+    };
+    storage.ceph = {
+      enable = true;
       fsid = "8364da79-5e03-49ae-82ea-7d936278cb0f";
       monKeyring = example/ceph.mon.keyring;
       adminKeyring = example/ceph.client.admin.keyring;
@@ -96,7 +115,7 @@
     };
 
     nomad = {
-      servers = [ "example1" "example2" "example3" ];
+      servers = builtins.attrNames config.skyflake.nodes;
       client.meta = {
         example-deployment = "yes";
       };
@@ -107,6 +126,7 @@
         uid = 1000;
         sshKeys = [
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGJJTSJdpDh82486uPiMhhyhnci4tScp5uUe7156MBC8 astro"
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPRRdToCDUupkkwI+crB3fGDwdBIFkDsBHjOImn+qsjg openpgp:0xE8D3D833"
         ];
       };
     };
@@ -114,5 +134,6 @@
 
   environment.systemPackages = with pkgs; [
     tcpdump
+    nmap
   ];
 }

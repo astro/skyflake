@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.skyflake.nomad;
-
 in
 {
   options.skyflake.nomad = with lib; {
@@ -9,6 +8,15 @@ in
       type = types.str;
       default = "sky0";
     };
+
+    # https://developer.hashicorp.com/nomad/docs/install/production/requirements#ports-used
+    networking.firewall.allowedUDPPorts = [
+      4648 #Serf WAN
+    ];
+    networking.firewall.allowedTCPPorts = [
+      4646 # HTTP API
+      4648 # Serf WAN
+    ];
 
     server.enable = mkOption {
       type = types.bool;
@@ -42,7 +50,7 @@ in
   config = {
     services.nomad = {
       enable = true;
-      package = pkgs.nomad_1_4;
+      package = pkgs.nomadPin.nomad_1_6; # nomad 1.6 is the newest version under an foss license.
       dropPrivileges = false;
       enableDocker = false;
 
@@ -56,8 +64,13 @@ in
 
         server = {
           enabled = cfg.server.enable;
-          bootstrap_expect = (builtins.length cfg.servers + 2) / 2;
+          bootstrap_expect = builtins.length cfg.servers; # why not this? Why this weird formular? (${NOMAD_SERVERS} + 2) / 2 ?
           server_join.retry_join = cfg.servers;
+        };
+        advertise = let
+          address = config.skyflake.nodes.${config.networking.hostName}.address;
+        in  {
+            serf = "${address}:4648";
         };
         client = {
           enabled = cfg.client.enable;
@@ -75,7 +88,7 @@ in
       # alternatives to the nomad web ui
       wander damon
       # needed for microvms
-      virtiofsd ceph
+      virtiofsd
       jq kmod e2fsprogs
     ];
   };
