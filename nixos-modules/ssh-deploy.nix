@@ -189,7 +189,7 @@ in {
       cron = mkOption {
         type = types.str;
         default = "@hourly";
-        description = lib.mdDoc ''
+        description = ''
           See `cron` in https://developer.hashicorp.com/nomad/docs/job-specification/periodic#periodic-parameters
         '';
       };
