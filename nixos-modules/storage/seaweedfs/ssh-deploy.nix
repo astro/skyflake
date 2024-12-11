@@ -79,7 +79,7 @@ let
 
     SYSTEM=\$(readlink "$SYSTEMS/\$NAME")
     # Copy to shared store
-    sudo nix copy --to file://${cfg.binaryCachePath} --no-check-sigs "\$SYSTEM"
+    sudo /run/current-system/sw/bin/nix copy --to file://${cfg.binaryCachePath} --no-check-sigs "\$SYSTEM"
     # Register gcroot
     mkdir -p "${cfg.sharedGcrootsPath}/$USER/$REPO"
     rm -f "${cfg.sharedGcrootsPath}/$USER/$REPO/\$NAME"
@@ -144,8 +144,8 @@ let
   cfg = config.skyflake.deploy;
 
 in {
-  config = {
-    skyflake.storage.seaweedfs.mounts = lib.mkIf config.skyflake.storage.seaweedfs.enable {
+  config = lib.mkIf config.skyflake.storage.seaweedfs.enable {
+    skyflake.storage.seaweedfs.mounts = {
       ${config.skyflake.deploy.binaryCachePath}.mountSource = "/skyflake-internals${config.skyflake.deploy.binaryCachePath}";
       ${config.skyflake.deploy.sharedGcrootsPath}.mountSource = "/skyflake-internals${config.skyflake.deploy.sharedGcrootsPath}";
     };
@@ -176,13 +176,10 @@ in {
     # allowing commands to copy to/from shared store
     security.sudo = {
       enable = true;
-      extraRules = [ {
-        groups = [ "users" ];
-        commands = [ {
-          command = ''/run/current-system/sw/bin/nix copy --to file\://${cfg.binaryCachePath} *'';
-          options = [ "NOPASSWD" ];
-        } ];
-      } ];
+      extraConfig = ''
+        %users ALL=(ALL:ALL) NOPASSWD: /run/current-system/sw/bin/nix copy --to file\://${cfg.binaryCachePath} *
+      '';
+
     };
 
     systemd.tmpfiles.rules =
