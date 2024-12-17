@@ -14,7 +14,7 @@ in
       4648 #Serf WAN
     ];
     networking.firewall.allowedTCPPorts = [
-      4646 # HTTP API
+      4646 # TODO Fix firewall with option HTTP API
       4648 # Serf WAN
     ];
 
